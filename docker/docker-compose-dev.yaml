@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.5-0
+    container_name: keycloak
+    command:
+      - start-dev
+      - --import-realm
+      - --features=dpop
+    environment:
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_RELATIVE_PATH=/idp
+      - KC_HTTP_PORT=8446
+      - KC_HTTPS_PORT=8445
+      - KC_HTTPS_CERTIFICATE_FILE=/etc/ssl/certs/keycloak.tls.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/ssl/certs/keycloak.tls.key
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=password
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak_password
+    volumes:
+      - ../services/authentic-source/keycloak/realms/:/opt/keycloak/data/import
+      - ../services/authentic-source/keycloak/certs/keycloak.tls.crt:/etc/ssl/certs/keycloak.tls.crt
+      - ../services/authentic-source/keycloak/certs/keycloak.tls.key:/etc/ssl/certs/keycloak.tls.key
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak_password
+    volumes:
+      - docker-compose_postgres_data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "443:443"
+    volumes:
+      - ../services/nginx-proxy/certs/nginx.crt:/etc/nginx/nginx.crt:ro
+      - ../services/nginx-proxy/certs/nginx.key:/etc/nginx/nginx.key:ro
+      - ../services/nginx-proxy/nginx_dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - keycloak
+
+volumes:
+  docker-compose_postgres_data:
+    external: true

@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.5-0
+    container_name: keycloak
+    #network_mode: host
+    # ports:
+    #   - "8445:8445"
+    #   - "8446:8446"
+    command:
+      - start-dev
+      - --import-realm
+      - --features=dpop
+    environment:
+      - KC_HOSTNAME=issuer.myddns.me
+      - KC_HOSTNAME_URL=https://issuer.myddns.me/idp
+      - KC_HOSTNAME_ADMIN_URL=https://issuer.myddns.me/idp
+      # - KC_HTTP_ENABLED=true
+      - KC_HTTP_RELATIVE_PATH=/idp
+      # - KC_HTTP_PORT=8446
+      - KC_HTTPS_PORT=8445
+      - KC_HTTPS_CERTIFICATE_FILE=/etc/ssl/certs/keycloak.tls.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/ssl/certs/keycloak.tls.key
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=RazvanAndrei2002@
+      # pentru postgres
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak_password
+    volumes:
+      - ../backend/authentic_source/docker-compose/keycloak/extra/health-check.sh:/opt/keycloak/health-check.sh
+      - ../backend/authentic_source/docker-compose/keycloak/realms/:/opt/keycloak/data/import
+      - ../backend/authentic_source/docker-compose/keycloak/certs/keycloak.tls.crt:/etc/ssl/certs/keycloak.tls.crt
+      - ../backend/authentic_source/docker-compose/keycloak/certs/keycloak.tls.key:/etc/ssl/certs/keycloak.tls.key
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak_password
+    volumes:
+      - docker-compose_postgres_data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/certs/fullchain.pem:/etc/nginx/nginx.crt:ro
+      - ./nginx/certs/privkey.pem:/etc/nginx/nginx.key:ro
+      - ../CA_certs/ca.crt:/etc/nginx/ca.crt:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - issuer-server
+
+
+  issuer-server:
+    image: navzar05/issuer_server:slim
+    container_name: issuer_server
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
+    environment:
+      - PKCS11_MODULE=/usr/lib/libeToken.so
+      - SERVER_ADDRESS=192.168.1.137
+    depends_on:
+      - keycloak
+
+  # blockchain-api:
+  #   image: blockchain_api
+  #   container_name: blockchain_api
+  #   ports:
+  #     - "8443:8443"
+  #   environment:
+  #     - SERVER_ADDRESS=192.168.1.137
+  #   depends_on:
+  #     - blockchain
+
+    
+  # blockchain:
+  #   image: blockchain
+  #   container_name: blockchain
+  #   ports:
+  #    - "8545:8545"
+
+
+# volumes:
+#   postgres_data:
+volumes:
+  docker-compose_postgres_data:
+    external: true
