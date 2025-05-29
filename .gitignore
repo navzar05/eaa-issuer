@@ -16,6 +16,7 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+
 *.jwt
 *.crt
 *.key
@@ -26,3 +27,6 @@ buildNumber.properties
 
 __pycache__/
 *.py[cod]
+
+
+services/nginx-proxy/certs/privkey.pem
