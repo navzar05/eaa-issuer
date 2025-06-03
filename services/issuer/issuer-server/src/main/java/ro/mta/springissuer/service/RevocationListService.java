@@ -2,20 +2,16 @@ package ro.mta.springissuer.service;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ro.mta.springissuer.util.statuslist.StatusList;
+import ro.mta.springissuer.util.revocationlist.RevocationList;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -30,10 +26,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class StatusListService {
-    private static final Logger logger = LoggerFactory.getLogger(StatusListService.class);
+public class RevocationListService {
+    private static final Logger logger = LoggerFactory.getLogger(RevocationListService.class);
 
-    private StatusList statusList;
+    private RevocationList revocationList;
 
     private String latestStatusListPath;
 
@@ -45,8 +41,8 @@ public class StatusListService {
     private final PrivateKey signingKey;
     private final List<Base64> signingCertificateChain;
 
-    StatusListService(StatusList statusList, PrivateKey signingKey, List<Base64> signingCertificateChain) {
-        this.statusList = statusList;
+    RevocationListService(RevocationList revocationList, PrivateKey signingKey, List<Base64> signingCertificateChain) {
+        this.revocationList = revocationList;
         this.signingKey = signingKey;
         this.signingCertificateChain = signingCertificateChain;
     }
@@ -55,7 +51,7 @@ public class StatusListService {
     public void generateStatusListJWT() {
         Map<String, Object> claims = new HashMap<>();
         Map<String, Object> statusListClaim = new HashMap<>();
-        byte[] statusListCompressed = statusList.getStatusListCompressed();
+        byte[] statusListCompressed = revocationList.getStatusListCompressed();
 
         statusListClaim.put("bits", 1);
         statusListClaim.put("lst", Base64.encode(statusListCompressed).toString());
@@ -97,7 +93,7 @@ public class StatusListService {
     }
 
     public void setCredentialStatus(long credentialId, boolean status) {
-        this.statusList.setStatus(BigInteger.valueOf(credentialId), status);
+        this.revocationList.setStatus(BigInteger.valueOf(credentialId), status);
     }
 
     public String getStatusListPath() {

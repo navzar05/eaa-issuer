@@ -1,7 +1,6 @@
-package ro.mta.springissuer.util.statuslist;
+package ro.mta.springissuer.util.revocationlist;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
@@ -13,14 +12,14 @@ import java.util.zip.Deflater;
  * Daca bit-ul corespunzator id-ului credentialului este setat pe 1, atunci acesta este revocat.
  */
 @Component
-public class StatusList {
+public class RevocationList {
     @Value("${revocation.list.size}")
     private int CREDENTIAL_ID_MAX;
 
     private BitSet bitSet;
 
 
-    public StatusList() {
+    public RevocationList() {
         this.bitSet = new BitSet(CREDENTIAL_ID_MAX);
     }
 

@@ -36,7 +36,7 @@ public class CredentialService {
     private final UserInfoService userInfoService;
     private final EncoderRegistry encoderRegistry;
     private final StrategyRegistry strategyRegistry;
-    private final StatusListService statusListService;
+    private final RevocationListService revocationListService;
     private final IpfsService ipfsService;
 
     @Autowired
@@ -44,13 +44,13 @@ public class CredentialService {
             UserInfoService userInfoService,
             EncoderRegistry encoderRegistry,
             StrategyRegistry strategyRegistry,
-            StatusListService statusListService,
+            RevocationListService revocationListService,
             IpfsService ipfsService
     ) {
         this.userInfoService = userInfoService;
         this.encoderRegistry = encoderRegistry;
         this.strategyRegistry = strategyRegistry;
-        this.statusListService = statusListService;
+        this.revocationListService = revocationListService;
         this.ipfsService = ipfsService;
 
     }
@@ -70,7 +70,7 @@ public class CredentialService {
                             String credentialId = parts[0];
                             int status = Integer.parseInt(parts[1]);
                             credentialStatusMap.put(credentialId, status);
-                            statusListService.setCredentialStatus(Long.parseLong(credentialId), status == 1);
+                            revocationListService.setCredentialStatus(Long.parseLong(credentialId), status == 1);
                         }
                     }
                 }
@@ -84,7 +84,7 @@ public class CredentialService {
                 logger.info("Credential status file not found, will create a new one when needed");
             }
 
-            this.statusListService.generateStatusListJWT();
+            this.revocationListService.generateStatusListJWT();
             logger.info("Credential status tracking initialized");
             // TODO: trebuie repornit
             // this.ipfsService.sendCascadeToIpfs();
@@ -155,6 +155,6 @@ public class CredentialService {
         logger.info("Revoking credential: {}", credentialId);
         credentialStatusMap.put(credentialId, 1);
         updateCredentialStatusFile();
-        statusListService.setCredentialStatus(Long.parseLong(credentialId), true);
+        revocationListService.setCredentialStatus(Long.parseLong(credentialId), true);
     }
 }
