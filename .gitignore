@@ -24,6 +24,11 @@ buildNumber.properties
 **/venv/
 .env*
 *.zip
+*.bin
+*.spec
+**/build/
+*.log
+
 
 __pycache__/
 *.py[cod]
