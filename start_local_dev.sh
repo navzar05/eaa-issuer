@@ -4,7 +4,7 @@
 export $(cat .env | xargs)
 
 #Obtinem adresa IP
-ip_address_eth=$(ip -4 addr show enp49s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+ip_address_eth=$(ip -4 addr show enp0s31f6 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 ip_address_wireless=$(ip -4 addr show wlp0s20f3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
 
@@ -113,4 +113,4 @@ keytool -importcert \
 
 cp ./services/issuer/issuer-server/src/main/resources/issuer-server.crt ./wallet/eudi-app-android-wallet-ui/resources-logic/src/main/res/raw/local_pid_issuer.crt
 
-sudo docker compose -f docker/docker-compose-dev.yaml up -d
+# sudo docker compose -f docker/docker-compose-dev.yaml up -d

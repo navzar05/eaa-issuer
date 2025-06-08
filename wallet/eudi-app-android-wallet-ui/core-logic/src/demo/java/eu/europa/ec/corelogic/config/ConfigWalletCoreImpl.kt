@@ -33,7 +33,7 @@ internal class WalletCoreConfigImpl(
 
     private companion object {
 //        const val VCI_ISSUER_URL = "https://issuer.myddns.me/issuer-server"
-        const val VCI_ISSUER_URL = "https://192.168.1.137/issuer-server"
+        const val VCI_ISSUER_URL = "https://192.168.1.141/issuer-server"
         const val VCI_CLIENT_ID = "wallet-dev"
         const val AUTHENTICATION_REQUIRED = false
     }
