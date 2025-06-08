@@ -1,5 +1,7 @@
 package ro.mta.springissuer.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -7,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import ro.mta.springissuer.model.request.CredentialRequest;
 import ro.mta.springissuer.service.CredentialService;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,6 +58,7 @@ public class CredentialController {
             ));
         }
     }
+
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> healthCheck() {

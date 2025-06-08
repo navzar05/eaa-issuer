@@ -6,7 +6,9 @@ import ro.mta.springissuer.model.request.CredentialRequest;
 
 import java.util.Map;
 
+// Interface extins care include și encodarea
 public interface CredentialIssuanceStrategy {
+    Object createCredential(Map<String, Object> userDetails, String credentialId);
 
-    public Credential createCredential(Map<String, Object> userDetails, String credentialId);
+    String encodeToSdJwt(Map<String, Object> userDetails, String credentialId);
 }

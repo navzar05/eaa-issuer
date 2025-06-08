@@ -9,15 +9,30 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configurările de securitate pentru server-ul de atestări.
+ * Această clasă definește regulile de autorizare și autentificare
+ * pentru toate endpoint-urile aplicației.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Configurează lanțul de filtre de securitate pentru aplicație.
+     * Definește care endpoint-uri sunt publice și care necesită autentificare,
+     * precum și tipul de autentificare folosit (JWT prin OAuth2).
+     *
+     * @param http obiectul HttpSecurity folosit pentru configurarea securității
+     * @return SecurityFilterChain configurat
+     * @throws Exception în cazul în care configurarea eșuează
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/issuer-server/.well-known/**").permitAll()
+                        .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/revocation-list").permitAll()
                         .requestMatchers("/revocation-list-ipfs").permitAll()
                         .anyRequest().authenticated()

@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import ro.mta.springissuer.model.request.CredentialRequest;
 import ro.mta.springissuer.util.credential.StrategyRegistry;
-import ro.mta.springissuer.util.encode.EncoderRegistry;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -34,7 +33,6 @@ public class CredentialService {
     private final Map<String, Integer> credentialStatusMap = new HashMap<>();
 
     private final UserInfoService userInfoService;
-    private final EncoderRegistry encoderRegistry;
     private final StrategyRegistry strategyRegistry;
     private final RevocationListService revocationListService;
     private final IpfsService ipfsService;
@@ -42,13 +40,11 @@ public class CredentialService {
     @Autowired
     public CredentialService(
             UserInfoService userInfoService,
-            EncoderRegistry encoderRegistry,
             StrategyRegistry strategyRegistry,
             RevocationListService revocationListService,
             IpfsService ipfsService
     ) {
         this.userInfoService = userInfoService;
-        this.encoderRegistry = encoderRegistry;
         this.strategyRegistry = strategyRegistry;
         this.revocationListService = revocationListService;
         this.ipfsService = ipfsService;
@@ -88,7 +84,7 @@ public class CredentialService {
             logger.info("Credential status tracking initialized");
             // TODO: trebuie repornit
             // this.ipfsService.sendCascadeToIpfs();
-            logger.info("IPFS cascade sent");
+            // logger.info("IPFS cascade sent");
         } catch (IOException e) {
             logger.error("Error initializing credential status tracking: {}", e.getMessage(), e);
         }
@@ -96,7 +92,7 @@ public class CredentialService {
 
     public Map<String, Object> issueCredential(Jwt jwt, CredentialRequest request) {
         try {
-            if (!encoderRegistry.supportsCredentialType(request.getVct())) {
+            if (!strategyRegistry.supports(request.getVct())) {
                 return null;
             }
 
@@ -107,14 +103,10 @@ public class CredentialService {
             String credentialId = String.valueOf(nextCredentialId++);
             logger.info("Issuing credential: {}", credentialId);
 
-            String sdJwt = encoderRegistry.getEncoder(
-                    request.getVct())
-                    .encode(
-                            strategyRegistry.
-                                    getStrategy(request.getVct())
-                                    .createCredential(
-                                            userInfoService.getUserDetails(jwt),
-                                            credentialId));
+            String sdJwt = strategyRegistry.getStrategy(request.getVct())
+                    .encodeToSdJwt(
+                            userInfoService.getUserDetails(jwt),
+                            credentialId);
 
 
             credentialStatusMap.put(credentialId, 0);

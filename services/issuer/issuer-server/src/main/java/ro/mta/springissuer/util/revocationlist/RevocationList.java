@@ -37,8 +37,8 @@ public class RevocationList {
     }
 
     /**
-     * Returnează status list-ul compresat folosind zlib cu cea mai bună rată de compresie.
-     * @return status list-ul compresat.
+     * Returnează status list-ul comprimat folosind zlib cu cea mai bună rată de comprimare.
+     * @return status list-ul comprimat.
      */
     public byte[] getStatusListCompressed() {
 

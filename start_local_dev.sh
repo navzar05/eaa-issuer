@@ -113,4 +113,4 @@ keytool -importcert \
 
 cp ./services/issuer/issuer-server/src/main/resources/issuer-server.crt ./wallet/eudi-app-android-wallet-ui/resources-logic/src/main/res/raw/local_pid_issuer.crt
 
-#sudo docker compose -f docker/docker-compose-dev.yaml up -d
+sudo docker compose -f docker/docker-compose-dev.yaml up -d

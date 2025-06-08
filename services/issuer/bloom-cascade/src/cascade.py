@@ -117,7 +117,7 @@ class Cascade:
         
         r_hat = current_valid_certs - expected_revocations
         
-        s_hat = 2 * expected_revocations
+        s_hat = 2 * r_hat
         
         return r_hat, s_hat
 

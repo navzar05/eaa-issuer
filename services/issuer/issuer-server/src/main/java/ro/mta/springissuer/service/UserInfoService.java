@@ -76,17 +76,14 @@ public class UserInfoService {
                     return new RuntimeException("Failed to fetch user details: " + ex.getMessage(), ex);
                 });
 
-        Map<String, Object> response = responseMono.block();
+        Map response = responseMono.block();
         if (response == null) {
             throw new RuntimeException("User details response is null");
         }
-
-        // After successfully retrieving user details, delete user consent
         try {
             deleteUserConsent(userId, adminToken);
         } catch (Exception ex) {
             logger.warn("Failed to delete user consent for userId {}: {}", userId, ex.getMessage());
-            // Don't fail the entire operation if consent deletion fails
         }
 
         return response;
@@ -96,45 +93,10 @@ public class UserInfoService {
         logger.debug("Deleting user consent for userId: {}", userId);
 
         try {
-            // First, get all consents for the user
-            String consentsUrl = baseUrl + "/admin/realms/pid-issuer-realm/users/" + userId + "/consents";
+            String deleteConsentsUrl = baseUrl + "/admin/realms/pid-issuer-realm/users/" + userId + "/consents/wallet-dev";
 
-            Mono<List> consentsMono = keycloakWebClient.get()
-                    .uri(consentsUrl)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
-                    .retrieve()
-                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
-                            response -> response.bodyToMono(String.class)
-                                    .map(body -> new RuntimeException("HTTP " + response.statusCode() + ": " + body)))
-                    .bodyToMono(List.class);
-
-            List<Map<String, Object>> consents = consentsMono.block();
-
-            if (consents != null && !consents.isEmpty()) {
-                // Delete each consent
-                for (Map<String, Object> consent : consents) {
-                    String clientId = (String) consent.get("clientId");
-                    if (clientId != null) {
-                        deleteSpecificConsent(userId, clientId, adminToken);
-                    }
-                }
-                logger.info("Successfully deleted all consents for userId: {}", userId);
-            } else {
-                logger.debug("No consents found for userId: {}", userId);
-            }
-
-        } catch (Exception ex) {
-            logger.error("Error deleting user consent for userId {}: {}", userId, ex.getMessage());
-            throw new RuntimeException("Failed to delete user consent", ex);
-        }
-    }
-
-    private void deleteSpecificConsent(String userId, String clientId, String adminToken) {
-        String deleteUrl = baseUrl + "/admin/realms/pid-issuer-realm/users/" + userId + "/consents/" + clientId;
-
-        try {
             keycloakWebClient.delete()
-                    .uri(deleteUrl)
+                    .uri(deleteConsentsUrl)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                     .retrieve()
                     .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
@@ -143,12 +105,11 @@ public class UserInfoService {
                     .bodyToMono(Void.class)
                     .block();
 
-            logger.debug("Successfully deleted consent for userId: {} and clientId: {}", userId, clientId);
+            logger.info("Successfully deleted all consents for userId: {}", userId);
 
         } catch (Exception ex) {
-            logger.error("Error deleting specific consent for userId {} and clientId {}: {}",
-                    userId, clientId, ex.getMessage());
-            throw ex;
+            logger.error("Error deleting user consent for userId {}: {}", userId, ex.getMessage());
+            throw new RuntimeException("Failed to delete user consent", ex);
         }
     }
 }

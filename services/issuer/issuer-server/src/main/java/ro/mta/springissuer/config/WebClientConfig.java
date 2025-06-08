@@ -16,29 +16,22 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.InputStream;
 import java.security.KeyStore;
 
+/**
+ * Configurarea clientului prin intermediul căruia serviciul
+ * {@link ro.mta.springissuer.service.UserInfoService} acesează
+ * informațiile utilizatorilor de la sursa autentică.
+ */
 @Configuration
 public class WebClientConfig {
 
     @Value("${keycloak.base-url}")
     private String keycloakBaseUrl;
 
-    @Value("${blockchain-api.base-url:https://192.168.1.129:8443/blockchain}")
-    private String blockchainApiBaseUrl;
-
-    @Value("${server.ssl.key-store}")
-    private Resource keyStore;
-
-    @Value("${server.ssl.key-store-password}")
-    private String keyStorePassword;
-
     @Value("${server.ssl.trust-store}")
     private Resource trustStore;
 
     @Value("${server.ssl.trust-store-password}")
     private String trustStorePassword;
-
-    @Value("${server.ssl.key-alias}")
-    private String keyAlias;
 
 
     @Bean(name = "keycloakWebClient")

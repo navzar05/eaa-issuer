@@ -1,7 +1,6 @@
 package ro.mta.springissuer.util.credential;
 
 import org.springframework.stereotype.Component;
-import ro.mta.springissuer.util.encode.Encoder;
 
 import java.util.HashMap;
 import java.util.Map;

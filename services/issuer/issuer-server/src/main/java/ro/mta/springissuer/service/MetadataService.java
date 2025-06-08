@@ -80,7 +80,7 @@ public class MetadataService {
                         "name", "Digital Credentials Issuer",
                         "locale", "en",
                         "logo", Map.of(
-                                "uri", "https://"+ serverConfig.getServerAddress() + "/public/ic-logo.svg",
+                                "uri", serverConfig.getIssuerUrl() + "",
                                 "alt_text", "EU Digital Identity Wallet Logo"
                         )
                 )
