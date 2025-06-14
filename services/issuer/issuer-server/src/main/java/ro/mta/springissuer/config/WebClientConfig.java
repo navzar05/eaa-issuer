@@ -27,16 +27,36 @@ public class WebClientConfig {
     @Value("${keycloak.base-url}")
     private String keycloakBaseUrl;
 
+    @Value("${spring.security.oauth2.resourceserver.jwt.spring-authz.issuer-uri}")
+    private String springAuthzBaseUrl;
+
     @Value("${server.ssl.trust-store}")
     private Resource trustStore;
 
     @Value("${server.ssl.trust-store-password}")
     private String trustStorePassword;
 
-
+    /**
+     * WebClient pentru comunicarea cu Keycloak (pentru credentialele PID)
+     */
     @Bean(name = "keycloakWebClient")
     public WebClient keycloakWebClient() throws Exception {
-        KeyStore trustStoreObj = KeyStore.getInstance("PKCS12");;
+        return createSecureWebClient(keycloakBaseUrl);
+    }
+
+    /**
+     * WebClient pentru comunicarea cu Spring Authorization Server (pentru credentialele universitare)
+     */
+    @Bean(name = "springAuthzWebClient")
+    public WebClient springAuthzWebClient() throws Exception {
+        return createSecureWebClient(springAuthzBaseUrl);
+    }
+
+    /**
+     * Metodă helper pentru crearea unui WebClient cu SSL configurat
+     */
+    private WebClient createSecureWebClient(String baseUrl) throws Exception {
+        KeyStore trustStoreObj = KeyStore.getInstance("PKCS12");
         try (InputStream trustStoreStream = trustStore.getInputStream()) {
             trustStoreObj.load(trustStoreStream, trustStorePassword.toCharArray());
         }
@@ -52,9 +72,8 @@ public class WebClientConfig {
                 .secure(t -> t.sslContext(sslContext));
 
         return WebClient.builder()
-                .baseUrl(keycloakBaseUrl)
+                .baseUrl(baseUrl)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
-
 }

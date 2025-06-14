@@ -21,16 +21,14 @@ public class UniversityGraduation extends Credential {
 
     public UniversityGraduation(Map<String, Object> userDetails, String credentialId)
     {
-        @SuppressWarnings("unchecked")
-        Map<String, List<String>> attributes = (Map<String, List<String>>) userDetails.getOrDefault("attributes", Map.of());
-        this.familyName = userDetails.get("lastName").toString();
-        this.givenName = userDetails.get("firstName").toString();
-        this.graduationYear = attributes.get("graduation_year").toString();
-        this.studentId = attributes.get("student_id").toString();
-        this.isStudent = attributes.get("is_student").get(0).equals("true");
-        this.university = attributes.get("university").toString();
+        this.familyName = userDetails.get("family_name").toString();
+        this.givenName = userDetails.get("given_name").toString();
+        this.graduationYear = userDetails.get("graduation_year").toString();
+        this.studentId = userDetails.get("student_id").toString();
+        this.isStudent = userDetails.get("is_student").equals("true");
+        this.university = userDetails.get("university").toString();
         this.issuanceDate = LocalDate.now();
-        this.expiryDate = attributes.get("expiry_date").toString();
+        this.expiryDate = userDetails.get("expiry_date").toString();
         // DE MODIFICAT
         this.availabilityPeriod = Period.ofYears(200);
         this.vct = "urn:org:certsign:university:graduation:1";

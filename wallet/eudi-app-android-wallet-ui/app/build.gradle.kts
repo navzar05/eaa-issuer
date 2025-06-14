@@ -26,17 +26,17 @@ plugins {
 android {
 
     signingConfigs {
-        create("release") {
-
-            storeFile = file("${rootProject.projectDir}/sign")
-
-            keyAlias = getProperty("androidKeyAlias") ?: System.getenv("ANDROID_KEY_ALIAS")
-            keyPassword = getProperty("androidKeyPassword") ?: System.getenv("ANDROID_KEY_PASSWORD")
-            storePassword =
-                getProperty("androidKeyPassword") ?: System.getenv("ANDROID_KEY_PASSWORD")
-
-            enableV2Signing = true
-        }
+//        create("release") {
+//
+//            storeFile = file("${rootProject.projectDir}/sign")
+//
+//            keyAlias = getProperty("androidKeyAlias") ?: System.getenv("ANDROID_KEY_ALIAS")
+//            keyPassword = getProperty("androidKeyPassword") ?: System.getenv("ANDROID_KEY_PASSWORD")
+//            storePassword =
+//                getProperty("androidKeyPassword") ?: System.getenv("ANDROID_KEY_PASSWORD")
+//
+//            enableV2Signing = true
+//        }
     }
 
     defaultConfig {
@@ -59,8 +59,9 @@ android {
             isDebuggable = false
             isMinifyEnabled = true
             applicationIdSuffix = AppBuildType.RELEASE.applicationIdSuffix
-            signingConfig = signingConfigs.getByName("release")
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            signingConfig = null
+//            signingConfig = signingConfigs.getByName("release")
+//            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
 
