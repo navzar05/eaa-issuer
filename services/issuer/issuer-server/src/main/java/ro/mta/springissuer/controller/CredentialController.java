@@ -14,6 +14,8 @@ import ro.mta.springissuer.service.QRCodeService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,13 +76,12 @@ public class CredentialController {
             @RequestParam String userId,
             @RequestParam(defaultValue = "true") boolean requirePin) {
 
-        Map<String, Object> userAttributes = Map.of(
-                "name", "Sample User",
-                "degree", "Computer Science"
-        );
+        List<String> scopes = new ArrayList<>();
+
+        scopes.add("org.certsign.university_graduation_sdjwt");
 
         Map<String, Object> offerData = credentialOfferService.createCredentialOfferWithQR(
-                userId, userAttributes, requirePin);
+                userId, scopes, requirePin);
 
         String credentialOfferUrl = (String) offerData.get("credential_offer_url");
         byte[] qrCodeBytes = qrCodeService.generateQRCodeBytes(credentialOfferUrl, 300, 300);

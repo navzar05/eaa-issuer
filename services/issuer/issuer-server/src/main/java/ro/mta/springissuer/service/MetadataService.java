@@ -87,10 +87,10 @@ public class MetadataService {
         // Enhanced display information
         response.put("display", List.of(
                 Map.of(
-                        "name", "Credentials Issuer",
+                        "name", "Credential Issuer",
                         "locale", "en",
                         "logo", Map.of(
-                                "uri", serverConfig.getIssuerUrl() + "/assets/logo.png",
+                                "uri", serverConfig.getPublicIssuerUrl() + "/ic-logo.svg",
                                 "alt_text", "Digital Credentials Issuer Logo"
                         )
                 )

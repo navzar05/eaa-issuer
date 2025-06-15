@@ -41,7 +41,7 @@ public class EncodeGraduationInSdJwtVc extends AbstractSdJwtEncoder {
                 new Disclosure("university", graduation.getUniversity()),
                 new Disclosure("issuance_date", graduation.getIssuanceDate().toString()),
                 new Disclosure("expiry_date", graduation.getExpiryDate()),
-                new Disclosure("is_student", graduation.getIsStudent()),
+                new Disclosure("is_student", graduation.isStudent()),
                 new Disclosure("certificate_type", graduation.getVct()),
                 new Disclosure("issuing_country", "RO")
         );

@@ -3,6 +3,7 @@ package ro.mta.springissuer.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -14,11 +15,11 @@ public class CredentialOfferService {
 
 
     public Map<String, Object> createCredentialOfferWithQR(String userId,
-                                                           Map<String, Object> userAttributes,
+                                                           List<String> scopes,
                                                            boolean requirePin) {
         // Get credential offer from authorization server
         Map<String, Object> credentialOffer = preAuthorizedCodeService
-                .createPreAuthorizedCode(userId, userAttributes, requirePin);
+                .createPreAuthorizedCode(userId, scopes, requirePin);
 
         // Extract credential offer URL for QR code
         String credentialOfferUrl = (String) credentialOffer.get("credential_offer_url");

@@ -11,7 +11,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 
 @Service
 @Slf4j
@@ -31,12 +33,12 @@ public class PreAuthorizedCodeService {
         this.springAuthzWebClient = webClient;
     }
 
-    public Map<String, Object> createPreAuthorizedCode(String userId, Map<String, Object> userAttributes, boolean requirePin) {
+    public Map<String, Object> createPreAuthorizedCode(String userId, List<String> scopes, boolean requirePin) {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("client_id", "wallet-dev"); // The wallet client ID
         requestBody.put("user_id", userId);
-        requestBody.put("user_attributes", userAttributes);
         requestBody.put("require_pin", requirePin);
+        requestBody.put("scopes", scopes);
 
         String adminToken = getAdminAccessTokenSpring();
 

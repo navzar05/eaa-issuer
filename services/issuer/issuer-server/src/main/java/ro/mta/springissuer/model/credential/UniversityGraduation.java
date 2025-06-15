@@ -25,7 +25,7 @@ public class UniversityGraduation extends Credential {
         this.givenName = userDetails.get("given_name").toString();
         this.graduationYear = userDetails.get("graduation_year").toString();
         this.studentId = userDetails.get("student_id").toString();
-        this.isStudent = userDetails.get("is_student").equals("true");
+        this.isStudent = (Boolean) userDetails.get("is_student") == true;
         this.university = userDetails.get("university").toString();
         this.issuanceDate = LocalDate.now();
         this.expiryDate = userDetails.get("expiry_date").toString();
@@ -33,9 +33,5 @@ public class UniversityGraduation extends Credential {
         this.availabilityPeriod = Period.ofYears(200);
         this.vct = "urn:org:certsign:university:graduation:1";
         this.credentialId = credentialId;
-    }
-
-    public boolean getIsStudent() {
-        return isStudent;
     }
 }
