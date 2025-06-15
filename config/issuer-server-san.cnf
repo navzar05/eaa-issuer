@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+C = RO
+ST = Bucuresti
+L = Bucuresti
+O = ATM
+OU = CALC
+CN = issuer-server
+[v3_req]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = issuer.myddns.me
+DNS.2 = issuer-server

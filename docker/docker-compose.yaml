@@ -50,6 +50,7 @@ services:
     volumes:
       - ../services/nginx-proxy/certs/fullchain.pem:/etc/nginx/nginx.crt:ro
       - ../services/nginx-proxy/certs/privkey.pem:/etc/nginx/nginx.key:ro
+      - ../config/ca/ca.crt:/etc/ssl/certs/ca.crt:ro
       - ../services/nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - issuer-server
@@ -58,12 +59,8 @@ services:
   issuer-server:
     image: issuer_server:experimental
     container_name: issuer_server
-    devices:
-      - /dev/bus/usb:/dev/bus/usb
     volumes:
       - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
-    environment:
-      - PKCS11_MODULE=/usr/lib/libeToken.so
     depends_on:
       - keycloak
 
