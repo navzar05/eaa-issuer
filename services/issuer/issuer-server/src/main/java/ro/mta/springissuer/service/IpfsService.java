@@ -104,7 +104,8 @@ public class IpfsService {
 
     }
 
-    private void buildCascade() throws IOException {
+    // TODO: Doar pentru testare
+    public void buildCascade() throws IOException {
         List<String> command = new ArrayList<>();
         command.add(executablePath);
         command.add("build");

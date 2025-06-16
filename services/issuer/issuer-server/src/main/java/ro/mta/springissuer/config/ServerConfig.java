@@ -21,6 +21,9 @@ public class ServerConfig {
     @Value("${server.issuer-url}")
     private String issuerUrl;
 
+    @Value("${server.public-issuer-url}")
+    private String publicIssuerUrl;
+
     @Value("${keycloak.base-url}")
     private String keycloakBaseUrl;
 

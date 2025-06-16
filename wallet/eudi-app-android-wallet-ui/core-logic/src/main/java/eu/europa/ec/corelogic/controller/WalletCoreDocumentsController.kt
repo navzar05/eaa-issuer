@@ -230,6 +230,8 @@ class WalletCoreDocumentsControllerImpl(
             runCatching {
                 val metadata = openId4VciManager.getIssuerMetadata().getOrThrow()
 
+
+
                 val documents =
                     metadata.credentialConfigurationsSupported.map { (id, config) ->
 

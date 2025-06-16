@@ -85,6 +85,25 @@ public class CredentialService {
             // TODO: trebuie repornit
             // this.ipfsService.sendCascadeToIpfs();
             // logger.info("IPFS cascade sent");
+
+            // TESTARE
+//            long start, duration, sum1 = 0, sum2 = 0;
+//            for (int i = 1; i < 5; i ++) {
+//                start = System.nanoTime();
+//                this.ipfsService.buildCascade();
+//                duration = System.nanoTime() - start;
+//                sum1 = sum1 + (duration / 1_000_000);
+//            }
+//
+//            for (int i = 1; i < 5; i ++) {
+//                start = System.nanoTime();
+//                this.revocationListService.generateStatusListJWT();
+//                duration = System.nanoTime() - start;
+//                sum2 = sum2 + (duration / 1_000_000);
+//            }
+//            System.out.println("Cascada: " + sum1 / 5 + " ms");
+//            System.out.println("JWT: " +  sum2 / 5  + " ms");
+//            System.out.println("Revocation list generated");
         } catch (IOException e) {
             logger.error("Error initializing credential status tracking: {}", e.getMessage(), e);
         }
