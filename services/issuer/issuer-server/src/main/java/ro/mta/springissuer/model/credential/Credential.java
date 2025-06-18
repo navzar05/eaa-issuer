@@ -7,7 +7,7 @@ import java.time.Period;
 
 @Getter
 public abstract class Credential {
-    protected String credentialId;
+    protected Long credentialId;
     protected Period availabilityPeriod;
     protected String vct;
 }

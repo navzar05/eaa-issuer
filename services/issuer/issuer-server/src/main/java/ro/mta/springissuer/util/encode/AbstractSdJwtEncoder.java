@@ -87,7 +87,7 @@ public abstract class AbstractSdJwtEncoder {
         return claims;
     }
 
-    private Map<String, Object> createStatusClaims(String credentialId) {
+    private Map<String, Object> createStatusClaims(Long credentialId) {
         Map<String, Object> statusList = Map.of(
                 "uri", revocationListLink,
                 "idx", credentialId

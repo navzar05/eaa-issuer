@@ -4,7 +4,7 @@
 export $(cat .env | xargs)
 
 #Obtinem adresa IP
-ip_address_eth=$(ip -4 addr show enp0s31f6 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+ip_address_eth=$(ip -4 addr show enp49s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 ip_address_wireless=$(ip -4 addr show wlp0s20f3 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
 
@@ -59,56 +59,56 @@ openssl pkcs12 -export \
       -name issuer-server \
       --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 
-keytool -importcert \
- -trustcacerts \
- -alias ca-cert \
- -file ./config/ca/ca.crt \
- -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
- -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
- -storetype PKCS12 \
- -noprompt
+# keytool -importcert \
+#  -trustcacerts \
+#  -alias ca-cert \
+#  -file ./config/ca/ca.crt \
+#  -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
+#  -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
+#  -storetype PKCS12 \
+#  -noprompt
 
 
 
-keytool -importcert \
- -trustcacerts \
- -alias nginx-cert \
- -file ./services/nginx-proxy/certs/nginx.crt \
- -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
- -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
- -storetype PKCS12 \
- -noprompt
+# keytool -importcert \
+#  -trustcacerts \
+#  -alias nginx-cert \
+#  -file ./services/nginx-proxy/certs/nginx.crt \
+#  -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
+#  -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
+#  -storetype PKCS12 \
+#  -noprompt
 
- keytool -importcert \
- -trustcacerts \
- -alias nginx-pc-2-cert \
- -file ./services/nginx-proxy/certs/fullchain.pem \
- -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
- -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
- -storetype PKCS12 \
- -noprompt
+#  keytool -importcert \
+#  -trustcacerts \
+#  -alias nginx-pc-2-cert \
+#  -file ./services/nginx-proxy/certs/fullchain.pem \
+#  -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
+#  -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
+#  -storetype PKCS12 \
+#  -noprompt
 
-  keytool -importcert \
- -trustcacerts \
- -alias nginx-pc-3-cert \
- -file ./services/nginx-proxy/certs/nginx.crt \
- -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
- -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
- -storetype PKCS12 \
- -noprompt
-
-
+#   keytool -importcert \
+#  -trustcacerts \
+#  -alias nginx-pc-3-cert \
+#  -file ./services/nginx-proxy/certs/nginx.crt \
+#  -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
+#  -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
+#  -storetype PKCS12 \
+#  -noprompt
 
 
 
-keytool -importcert \
- -trustcacerts \
- -alias keycloak-cert \
- -file ./services/authentic-source/keycloak/certs/keycloak.tls.crt \
- -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
- -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
- -storetype PKCS12 \
- -noprompt
+
+
+# keytool -importcert \
+#  -trustcacerts \
+#  -alias keycloak-cert \
+#  -file ./services/authentic-source/keycloak/certs/keycloak.tls.crt \
+#  -keystore ./services/issuer/issuer-server/src/main/resources/truststore.p12 \
+#  -storepass ${ISSUER_SERVER_TRUSTSTORE_PASSWORD} \
+#  -storetype PKCS12 \
+#  -noprompt
 
 
 cp ./services/issuer/issuer-server/src/main/resources/issuer-server.crt ./wallet/eudi-app-android-wallet-ui/resources-logic/src/main/res/raw/local_pid_issuer.crt

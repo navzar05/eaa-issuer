@@ -33,7 +33,7 @@ public class Pid extends Credential {
     private final Year ageBirthYear;
 
 
-    public Pid(Map<String, Object> userDetails, String credentialId)
+    public Pid(Map<String, Object> userDetails, Long credentialId)
     {
         @SuppressWarnings("unchecked")
         Map<String, List<String>> attributes = (Map<String, List<String>>) userDetails.getOrDefault("attributes", Map.of());

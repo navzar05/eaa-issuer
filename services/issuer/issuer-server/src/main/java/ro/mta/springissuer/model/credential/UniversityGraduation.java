@@ -19,7 +19,7 @@ public class UniversityGraduation extends Credential {
     private final String expiryDate;
     private final boolean isStudent;
 
-    public UniversityGraduation(Map<String, Object> userDetails, String credentialId)
+    public UniversityGraduation(Map<String, Object> userDetails, Long credentialId)
     {
         this.familyName = userDetails.get("family_name").toString();
         this.givenName = userDetails.get("given_name").toString();

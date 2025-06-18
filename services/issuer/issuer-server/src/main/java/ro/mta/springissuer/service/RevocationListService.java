@@ -57,7 +57,7 @@ public class RevocationListService {
         statusListClaim.put("lst", Base64.encode(statusListCompressed).toString());
 
         long iat = System.currentTimeMillis() / 1000;
-        long exp = iat + 24 * 60 * 60; // expiră într-o zi
+        long exp = iat + 24 * 60 * 60;
 
         claims.put("iss", credentialIssuerId);
         claims.put("iat", iat);

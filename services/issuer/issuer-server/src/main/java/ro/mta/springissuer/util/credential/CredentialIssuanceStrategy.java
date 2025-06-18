@@ -8,7 +8,7 @@ import java.util.Map;
 
 // Interface extins care include și encodarea
 public interface CredentialIssuanceStrategy {
-    Object createCredential(Map<String, Object> userDetails, String credentialId);
+    Object createCredential(Map<String, Object> userDetails, Long credentialId);
 
-    String encodeToSdJwt(Map<String, Object> userDetails, String credentialId);
+    String encodeToSdJwt(Map<String, Object> userDetails, Long credentialId);
 }

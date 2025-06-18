@@ -16,12 +16,12 @@ public class UnivGradIssuanceStrategy implements CredentialIssuanceStrategy {
     }
 
     @Override
-    public Credential createCredential(Map<String, Object> userDetails, String credentialId) {
+    public Credential createCredential(Map<String, Object> userDetails, Long credentialId) {
         return new UniversityGraduation(userDetails, credentialId);
     }
 
     @Override
-    public String encodeToSdJwt(Map<String, Object> userDetails, String credentialId) {
+    public String encodeToSdJwt(Map<String, Object> userDetails, Long credentialId) {
         Credential credential = createCredential(userDetails, credentialId);
         return encoder.encode(credential);
     }

@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ro.mta.springissuer.service.IpfsService;
 import ro.mta.springissuer.service.RevocationListService;
 
 import java.io.IOException;
@@ -21,13 +20,10 @@ public class RevocationListController {
 
     private static final Logger logger = LoggerFactory.getLogger(RevocationListController.class);
 
-    private RevocationListService revocationListService;
+    private final RevocationListService revocationListService;
 
-    private IpfsService ipfsService;
-
-    RevocationListController(RevocationListService revocationListService, IpfsService ipfsService) {
+    RevocationListController(RevocationListService revocationListService) {
         this.revocationListService = revocationListService;
-        this.ipfsService = ipfsService;
     }
 
     @GetMapping("/revocation-list")
@@ -41,22 +37,4 @@ public class RevocationListController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    @GetMapping("/revocation-list-ipfs")
-    public ResponseEntity<Void> getStatusListIpfs() {
-        try {
-            String baseUri = "https://gateway.pinata.cloud/ipfs/";
-            String cid = ipfsService.getLastIpfsHash();
-            String fullUrl = baseUri + cid;
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create(fullUrl));
-
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
-        } catch (Exception e) {
-            logger.error("Error fetching status list from IPFS: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
 }
