@@ -81,7 +81,7 @@ public class UserInfoService {
         logger.debug("Obtaining admin access token from Spring Authorization Server");
 
         // Encode client credentials for Basic Auth
-        String credentials = clientId + ":" + clientSecret;
+        String credentials = clientId + ":" + "zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2";
         String encodedCredentials = java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
 
         Mono<Map> tokenResponse = springAuthzWebClient.post()

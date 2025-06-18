@@ -29,7 +29,7 @@ public class MetadataService {
     @Value("${metadata.config.path:classpath:config/credential-configurations.json}")
     private String metadataConfigPath;
 
-    @Value("${spring.authorization-server.base-url:https://192.168.1.137:9000}")
+    @Value("${spring.authorization-server.base-url}")
     private String springAuthServerUrl;
 
     private Map<String, Object> credentialConfigurations;
