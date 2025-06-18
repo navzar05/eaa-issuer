@@ -21,4 +21,4 @@ COPY state_list.txt /app/revocation-list.txt
 EXPOSE 8081
 
 # Run the Spring Boot application directly
-CMD ["java", "-jar", "-Dspring.profiles.active=docker", "/app/app.jar"]
+CMD ["sh", "-c", "java -jar -Dspring.profiles.active=docker /app/app.jar"]

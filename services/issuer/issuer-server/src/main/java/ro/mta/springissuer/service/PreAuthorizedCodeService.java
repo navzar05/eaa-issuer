@@ -23,11 +23,11 @@ public class PreAuthorizedCodeService {
     private final WebClient springAuthzWebClient;
 
 
-    @Value("${issuer.client.id:issuer-srv}")
-    private String clientId;
-
-    @Value("${issuer.client.secret:zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2}")
+    @Value("${oauth2.client.client-secret:zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2}")
     private String clientSecret;
+
+    @Value("${oauth2.client.client-id:issuer-srv}")
+    private String clientId;
 
     PreAuthorizedCodeService(@Qualifier("springAuthzWebClient") WebClient webClient) {
         this.springAuthzWebClient = webClient;
@@ -64,6 +64,11 @@ public class PreAuthorizedCodeService {
     }
 
     private String getAdminAccessTokenSpring() {
+
+        log.info("Using clientId: {}", clientId);
+        log.info("Using clientSecret: {}", clientSecret != null ? "***" + clientSecret.substring(Math.max(0, clientSecret.length() - 4)) : "null");
+
+
         log.debug("Obtaining admin access token from Spring Authorization Server");
 
         // Encode client credentials for Basic Auth
