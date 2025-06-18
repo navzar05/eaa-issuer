@@ -30,8 +30,14 @@ services:
       - ../services/authentic-source/keycloak/certs/keycloak.tls.key:/etc/ssl/certs/keycloak.tls.key
       - ../services/authentic-source/keycloak/themes:/opt/keycloak/themes
     depends_on:
-      - postgres
-
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/keycloak/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      
   postgres:
     image: postgres:16
     container_name: postgres
@@ -41,18 +47,50 @@ services:
       - POSTGRES_PASSWORD=keycloak_password
     volumes:
       - docker-compose_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  authz-spring-server:
+    image: navzar05/authz-spring-server:dev
+    container_name: authz-spring-server
+    depends_on:
+      postgres-spring:
+          condition: service_healthy
+
+
+  postgres-spring:
+    image: postgres:16
+    container_name: postgres-spring
+    environment:
+      - POSTGRES_DB=authdb
+      - POSTGRES_USER=spring
+      - POSTGRES_PASSWORD=spring_password
+    volumes:
+      - docker-compose_postgres-spring_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spring -d authdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy
     ports:
       - "443:443"
+      - "9000:9000"
     volumes:
       - ../services/nginx-proxy/certs/fullchain.pem:/etc/nginx/nginx.crt:ro
       - ../services/nginx-proxy/certs/privkey.pem:/etc/nginx/nginx.key:ro
       - ../config/ca/ca.crt:/etc/ssl/certs/ca.crt:ro
       - ../services/nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
+      - authz-spring-server
       - issuer-server
 
 
@@ -62,10 +100,10 @@ services:
     volumes:
       - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_healthy
 
-# volumes:
-#   postgres_data:
+
 volumes:
+  docker-compose_postgres-spring_data:
   docker-compose_postgres_data:
-    # external: true
