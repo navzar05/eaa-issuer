@@ -58,6 +58,9 @@ services:
     image: navzar05/crl-publisher:dev 
     container_name: crl_publisher
     environment:
+      - TOKEN_PIN=Andrei2002#
+      - CERT_LABEL=IssuerECKey
+      - PKCS11_LIB_PATH=/usr/lib/libeToken.so
       - REDIS_HOST=redis
       - REDIS_PASSWORD=mypassword
       - INITIAL_PUBLISH=1
@@ -69,10 +72,12 @@ services:
       - PINATA_API_KEY=a2e74131d851ebe3156a
       - PINATA_SECRET_KEY=264d2b858cd60a2c9ff1b8ea4e6a73ef4ab1410c4fb4d612e7f81ea6a22f35ec
       - REDIS_PORT=6379
-      - INITIAL_PUBLISH=0
-    depends_on:
-      redis:
-        condition: service_healthy
+      - INITIAL_PUBLISH=1
+    volumes:
+      - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
+    # depends_on:
+    #   redis:
+    #     condition: service_healthy
 
   nginx:
     image: nginx:alpine
