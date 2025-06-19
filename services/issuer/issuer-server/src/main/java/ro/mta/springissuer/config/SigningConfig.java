@@ -248,11 +248,9 @@ public class SigningConfig {
         Signature signature;
 
         if (usingGeneratedKey) {
-            // Use standard provider for generated keys
             signature = Signature.getInstance("SHA256withECDSA");
             logger.info("Using standard provider for generated key signature");
         } else {
-            // Use PKCS#11 provider for token keys
             signature = Signature.getInstance("SHA256withECDSA", pkcs11Provider);
             logger.info("Using PKCS#11 provider for token key signature");
         }
