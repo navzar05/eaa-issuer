@@ -4,6 +4,8 @@ package ro.mta.springissuer.util.encode;
 import com.authlete.sd.Disclosure;
 import com.authlete.sd.SDObjectBuilder;
 import com.authlete.sd.SDJWT;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -14,13 +16,18 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.ResourceUtils;
 import ro.mta.springissuer.model.credential.Credential;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Signature;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +39,16 @@ public abstract class AbstractSdJwtEncoder {
     @Value("${revocation.list.link}")
     protected String revocationListLink;
 
-    @Value("${revocation.list.ipfs.link}")
-    protected String ipfsListLink;
-
     @Value("${server.issuer-url}")
     private String credentialIssuerId;
     @Value("${token.enabled:false}")
     private boolean tokenEnabled;
+
+    @Value("${blockchain.contract.address}")
+    private String blockchainContractAddress;
+
+    @Value("${blockchain.issuer.address}")
+    private String blockchainIssuerAddress;
 
     private final Provider pkcs11Provider;
     private final KeyStore tokenKeyStore;
@@ -93,14 +103,33 @@ public abstract class AbstractSdJwtEncoder {
                 "idx", credentialId
         );
 
-        Map<String, Object> ipfsList = Map.of(
-                "uri", ipfsListLink,
-                "id", credentialId
-        );
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> abi;
+        try {
+            ClassPathResource resource = new ClassPathResource("blockchain-abi.json");
+            abi = objectMapper.readValue(
+                    resource.getInputStream(),
+                    new TypeReference<List<Map<String, Object>>>() {
+                    }
+            );
 
+            // Clean, parsed objects - no escape characters
+            abi.forEach(item -> {
+                System.out.println("Type: " + item.get("type"));
+                System.out.println("Name: " + item.get("name"));
+            });
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Map<String, Object> blockchainList = Map.of(
+                "contract_address", blockchainContractAddress,
+                "issuer_address", blockchainIssuerAddress,
+                "abi", abi
+        );
         return Map.of(
                 "status_list", statusList,
-                "ipfs_list", ipfsList
+                "blockchain_list", blockchainList
         );
     }
 
