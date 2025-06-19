@@ -21,12 +21,13 @@ else
     ip_address=$ip_address_eth
 fi
 
-files="./CA_certs/san.cnf 
+files="config/san.cnf
       ./services/authentic-source/keycloak/realms/pid-issuer-realm-realm.json
       ./services/issuer/issuer-server/src/main/resources/application.properties
       ./services/nginx-proxy/nginx_dev.conf
       ./wallet/eudi-app-android-wallet-ui/core-logic/src/demo/java/eu/europa/ec/corelogic/config/ConfigWalletCoreImpl.kt
       ./docker/docker-compose.yaml
+      /home/razvan/Desktop/LICENTA/Licenta/services/authentic-source/authserver/src/main/resources/application.yml
       "
 
 for file in $files; do
@@ -44,7 +45,8 @@ ca_cert="./config/ca/ca.crt"
 # Numele certifcatelor, cheilor
 names="./services/issuer/issuer-server/src/main/resources/issuer-server
        ./services/authentic-source/keycloak/certs/keycloak.tls
-       ./services/nginx-proxy/certs/nginx"
+       ./services/nginx-proxy/certs/nginx
+       ./services/authentic-source/authserver/src/main/resources/authz-server"
 
 for name in $names; do
     openssl genpkey -algorithm RSA -out ${name}.key
@@ -58,6 +60,13 @@ openssl pkcs12 -export \
       -out ./services/issuer/issuer-server/src/main/resources/issuer-server.p12 \
       -name issuer-server \
       --passout pass:${ISSUER_SERVER_P12_PASSWORD}
+
+openssl pkcs12 -export \
+  -inkey ./services/authentic-source/authserver/src/main/resources/authz-server.key \
+  -in ./services/authentic-source/authserver/src/main/resources/authz-server.crt \
+  -out ./services/authentic-source/authserver/src/main/resources/authz-server.p12 \
+  -name issuer-server \
+  --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 
 # keytool -importcert \
 #  -trustcacerts \
@@ -99,8 +108,6 @@ openssl pkcs12 -export \
 
 
 
-
-
 # keytool -importcert \
 #  -trustcacerts \
 #  -alias keycloak-cert \
@@ -113,4 +120,5 @@ openssl pkcs12 -export \
 
 cp ./services/issuer/issuer-server/src/main/resources/issuer-server.crt ./wallet/eudi-app-android-wallet-ui/resources-logic/src/main/res/raw/local_pid_issuer.crt
 
-# sudo docker compose -f docker/docker-compose-dev.yaml up -d
+sudo docker compose -f docker/docker-compose-dev.yaml down
+sudo docker compose -f docker/docker-compose-dev.yaml up -d

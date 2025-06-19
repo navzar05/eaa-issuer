@@ -65,7 +65,6 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "mypassword", "ping"]
       interval: 1s
       timeout: 3s
       retries: 30
