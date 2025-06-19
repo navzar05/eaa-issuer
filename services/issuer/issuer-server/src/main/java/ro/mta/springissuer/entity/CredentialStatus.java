@@ -1,12 +1,14 @@
 package ro.mta.springissuer.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.io.Serializable;
 
+@Setter
 @Getter
 @RedisHash("credential_status")
 public class CredentialStatus implements Serializable {
@@ -23,14 +25,6 @@ public class CredentialStatus implements Serializable {
 
     public CredentialStatus(Long credentialId, Boolean status) {
         this.credentialId = credentialId;
-        this.status = status;
-    }
-
-    public void setCredentialId(Long credentialId) {
-        this.credentialId = credentialId;
-    }
-
-    public void setStatus(Boolean status) {
         this.status = status;
     }
 

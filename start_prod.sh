@@ -127,4 +127,4 @@ openssl pkcs12 -export \
 
 # cp ./services/issuer/issuer-server/src/main/resources/issuer-server.crt ./wallet/eudi-app-android-wallet-ui/resources-logic/src/main/res/raw/local_pid_issuer.crt
 sudo docker compose -f docker/docker-compose.yaml down
-sudo docker compose -f docker/docker-compose.yaml up
+sudo docker compose -f docker/docker-compose.yaml up -d

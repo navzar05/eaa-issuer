@@ -15,8 +15,6 @@ WORKDIR /app
 
 # Copy application files
 COPY target/spring-issuer-0.0.1-SNAPSHOT.jar /app/app.jar
-COPY cascade_cli /app/cascade_cli
-COPY state_list.txt /app/revocation-list.txt
 
 EXPOSE 8081
 
