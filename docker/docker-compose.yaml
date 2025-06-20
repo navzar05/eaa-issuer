@@ -52,6 +52,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    
+  ipfs:
+    container_name: ipfs
+    image: ipfs/kubo:v0.35.0
+    ports:
+      - "4001:4001"          # Swarm port
+      - "4001:4001/udp"      # QUIC
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ipfs_staging:/export     
+    environment:
+      - IPFS_PROFILE=server
+      - IPFS_Datastore_StorageMax=1GB
+      - IPFS_Datastore_GCPeriod=1h
+    restart: unless-stopped
   
   redis:
     image: redis:alpine
@@ -70,25 +85,30 @@ services:
       retries: 30
 
   crl_publisher:
-    image: navzar05/crl-publisher:dev 
+    image: navzar05/crl_publisher:dev-sol 
     container_name: crl_publisher
     environment:
+      - TOKEN_PIN=Andrei2002#
+      - CERT_LABEL=IssuerECKey
+      - PKCS11_LIB_PATH=/usr/lib/libeToken.so
       - REDIS_HOST=redis
       - REDIS_PASSWORD=mypassword
       - INITIAL_PUBLISH=1
-      - ABI_FILE_PATH=./abi.json
+      - ABI_FILE_PATH=/app/crl_deployment.json
+      - CONTRACT_PATH=/app/solidity/CRLRegistry.sol
       - PRIVATE_KEY=0x3d0be1f04e66966e5c2138f70b50faffc5634a36b50ef8d76d80093dc9c2f650
-      - CONTRACT_ADDRESS=0xCf2D2500092761583af3EB64a020584c3A424D1E
       - RPC_URL=https://ethereum-holesky-rpc.publicnode.com
-      - IPFS_PINNING_ENDPOINT=https://api.pinata.cloud/pinning/pinFileToIPFS
+      - IPFS_PINNING_ENDPOINT=http://ipfs:5001/api/v0/add
       - PINATA_API_KEY=a2e74131d851ebe3156a
       - PINATA_SECRET_KEY=264d2b858cd60a2c9ff1b8ea4e6a73ef4ab1410c4fb4d612e7f81ea6a22f35ec
       - REDIS_PORT=6379
-      - INITIAL_PUBLISH=0
-    depends_on:
-      redis:
-        condition: service_healthy
-
+      - INITIAL_PUBLISH=1
+      - USE_IPFS=1
+      - USE_BLOB=1
+    volumes:
+      - ./crl_deployment.json:/app/crl_deployment.json
+      - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
+    # depends_on:
 
   authz-spring-server:
     image: navzar05/authz-spring-server:dev
@@ -133,6 +153,8 @@ services:
   issuer-server:
     image: issuer_server:redis
     container_name: issuer_server
+    environment:
+      - BLOCKCHAIN_CONTRACT_ADDRESS=0x84a83892cb0608c5dfDa5EBD7398d2c3EfF0988d
     volumes:
       - /run/pcscd/pcscd.comm:/run/pcscd/pcscd.comm
     depends_on:
@@ -144,3 +166,5 @@ volumes:
   docker-compose_postgres-spring_data:
   docker-compose_postgres_data:
   redis_data:
+  ipfs_data:
+  ipfs_staging:

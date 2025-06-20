@@ -782,8 +782,8 @@
       "clientId": "pid-issuer-srv",
       "name": "PID Issuer service",
       "description": "",
-      "rootUrl": "http://192.168.1.137",
-      "adminUrl": "http://192.168.1.137",
+      "rootUrl": "http://192.168.1.141",
+      "adminUrl": "http://192.168.1.141",
       "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -791,10 +791,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "http://192.168.1.137/*"
+        "http://192.168.1.141/*"
       ],
       "webOrigins": [
-        "http://192.168.1.137"
+        "http://192.168.1.141"
       ],
       "notBefore": 0,
       "bearerOnly": false,
