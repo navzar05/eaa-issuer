@@ -3,6 +3,7 @@ import json
 import time
 import base64
 from web3 import Web3
+from eth_utils import to_hex
 from eth_account import Account
 from dotenv import load_dotenv
 import requests
@@ -13,10 +14,13 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from PyKCS11 import PyKCS11  # For NetSafe eToken interaction
+from enum import IntEnum
 
 from cascade import Cascade
+from cascade_blob import CascadeBlob
+from deploy_contract import deploy_crl_contract
 
-load_dotenv()
+load_dotenv(dotenv_path='../.env')
 
 RPC_URL = os.getenv("RPC_URL")
 ABI_FILE_PATH = os.getenv("ABI_FILE_PATH")
@@ -39,21 +43,38 @@ KEY_LABEL = os.getenv("KEY_LABEL", "Private Key")    # Private key label on toke
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CRLPublisher:
-    def __init__(self, private_key, contract_address):
-        try:
-            with open(ABI_FILE_PATH, "r") as file:
-                self.abi = json.load(file)
+class SaveMethod(IntEnum):
+    BLOB = 0
+    IPFS = 1
 
+class CRLPublisher:
+    def __init__(self, private_key):
+        try:
+
+            if not os.path.exists(ABI_FILE_PATH):
+                logger.info(f"{ABI_FILE_PATH} not found")
+                logger.info("Deploying the smart contract on blockchain...")
+                crl_deployment = deploy_crl_contract(private_key=private_key)
+            else:
+                logger.info(f"{ABI_FILE_PATH} found")
+                with open(ABI_FILE_PATH, "r") as file:
+                    crl_deployment = json.load(file)
+                    logger.info(f"Deployment info loaded from {ABI_FILE_PATH}")
+
+
+            self.contract_address = crl_deployment['contract_address']
+            self.abi = crl_deployment['contract_abi']
+            
             self.account = Account.from_key(private_key)
             self.w3 = Web3(Web3.HTTPProvider(RPC_URL))
-            self.contract = self.w3.eth.contract(address=contract_address, abi=self.abi)
+            self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.abi)
             self.pinata_api_key = API_KEY
             self.pinata_secret = API_SECRET
 
             self.R = set()  # valid creds
             self.S = set()  # invalid creds
             self.cascade = Cascade()
+            self.blob_cascade = CascadeBlob()
             
             self.redis = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
             self.redis.ping()
@@ -203,35 +224,7 @@ class CRLPublisher:
                 if key_objects:
                     logger.info("Found private key by matching certificate ID")
                     return key_objects[0]
-            
-            # Method 2: Try to find by label if specified
-            if KEY_LABEL:
-                key_objects = self.session.findObjects([
-                    (PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY),
-                    (PyKCS11.CKA_LABEL, KEY_LABEL)
-                ])
-                if key_objects:
-                    logger.info("Found private key by label")
-                    return key_objects[0]
-            
-            # Method 3: Find any EC private key (try both ECDSA and EC types)
-            for key_type in [PyKCS11.CKK_ECDSA, PyKCS11.CKK_EC]:
-                key_objects = self.session.findObjects([
-                    (PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY),
-                    (PyKCS11.CKA_KEY_TYPE, key_type)
-                ])
-                if key_objects:
-                    key_type_name = "ECDSA" if key_type == PyKCS11.CKK_ECDSA else "EC"
-                    logger.info(f"Found {key_type_name} private key")
-                    return key_objects[0]
-            
-            # Method 4: Find any private key
-            key_objects = self.session.findObjects([
-                (PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY)
-            ])
-            if key_objects:
-                logger.info("Found private key (generic search)")
-                return key_objects[0]
+        
             
             raise Exception("No private keys found on token")
             
@@ -323,6 +316,37 @@ class CRLPublisher:
                     
         except Exception as e:
             print(f"Error: {e}")
+    
+    def _cleanup_token(self):
+        """Clean up eToken session"""
+        try:
+            if self.session:
+                self.session.logout()
+                self.session.closeSession()
+                logger.info("NetSafe eToken session closed")
+        except Exception as e:
+            logger.warning(f"Error cleaning up token session: {e}")
+
+    def _upload_to_ipfs(self, data):
+        """Upload JWT data to IPFS"""
+        response = requests.post(
+            IPFS_PINNING_ENDPOINT,
+            files={'file': data},
+            params={'pin': 'true'}
+        )
+
+        if response.status_code != 200:
+            logger.error(f"Failed to upload data to IPFS endpoint {IPFS_PINNING_ENDPOINT}: {response.reason}")
+            raise 
+
+        return response.json()['Hash']
+
+    def __del__(self):
+        """Destructor to ensure token session is cleaned up"""
+        self._cleanup_token()
+
+    def getCRL(self, issuerAddress, saveMethod: SaveMethod):
+        return self.contract.functions.getCRL(issuerAddress, saveMethod).call()
 
     def publish_crl(self):
         try:
@@ -332,15 +356,16 @@ class CRLPublisher:
             self.cascade.build_cascade(self.R, self.S)
             
             # Serialize the cascade
-            cascade_blob = self.cascade.serialize_cascade()
+            cascade_data = self.cascade.serialize_cascade()
             
             # Create signed JWT with cascade data
-            jwt_token = self._create_signed_jwt(cascade_blob)
+            jwt_token = self._create_signed_jwt(cascade_data)
             
             # Upload JWT to IPFS
-            ipfs_hash = self.upload_to_ipfs(jwt_token.encode())
+            ipfs_hash = self._upload_to_ipfs(jwt_token.encode())
 
             transaction = self.contract.functions.publishCRL(
+                SaveMethod.IPFS,
                 ipfs_hash,
                 24
             ).build_transaction({
@@ -359,12 +384,13 @@ class CRLPublisher:
             if receipt.status == 1:
                 logger.debug("CRL published successfully!")
                 
-                # Parse events
+                # Parse events - updated field names based on ABI
                 events = self.contract.events.CRLPublished().process_receipt(receipt)
                 if events:
                     event = events[0]
                     logger.info(f"   Event: CRL Published")
-                    logger.info(f"   IPFS Hash: {event['args']['ipfsHash']}")
+                    logger.info(f"   Save Method: {'IPFS'}")
+                    logger.info(f"   Pointer Hash: {event['args']['pointerHash']}")
                     logger.info(f"   Version: {event['args']['version']}")
                     logger.info(f"   Expires: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(event['args']['expiresAt']))}")
                     logger.info(f"   JWT signed with NetSafe eToken (ECDSA)")
@@ -377,35 +403,76 @@ class CRLPublisher:
             return False
         finally:
             self._cleanup_token()
-    
-    def getCRL(self):
-        return self.contract.functions.getCRL("0xC887f232c81c4609CF98857c6Fe55FDE8d24f418").call()
 
-    def upload_to_ipfs(self, data):
-        """Upload JWT data to IPFS"""
-        headers = {
-            'pinata_api_key': self.pinata_api_key,
-            'pinata_secret_api_key': self.pinata_secret
-        }
-        
-        response = requests.post(
-            IPFS_PINNING_ENDPOINT,
-            headers=headers,
-            files={'file': data}
-        )
-        
-        return response.json()['IpfsHash']
-    
-    def _cleanup_token(self):
-        """Clean up eToken session"""
+    def publish_blob_crl(self):
         try:
-            if self.session:
-                self.session.logout()
-                self.session.closeSession()
-                logger.info("NetSafe eToken session closed")
-        except Exception as e:
-            logger.warning(f"Error cleaning up token session: {e}")
+            self._get_all_credentials()
 
-    def __del__(self):
-        """Destructor to ensure token session is cleaned up"""
-        self._cleanup_token()
+            self.blob_cascade.build_cascade(self.R, self.S)
+
+            cascade_data = self.blob_cascade.serialize_cascade()
+
+            marked_data = self.blob_cascade.MAGIC_NUMBER + cascade_data
+
+            required_padding = 131072 - (len(marked_data) % 131072)
+
+            BLOB_DATA = (b"\x00" * required_padding) + marked_data
+
+            tx = {
+                "type": 3,
+                "chainId": 17000,
+                "from": self.account.address,
+                "to": "0x0000000000000000000000000000000000000000",
+                "value": 0,
+                "maxFeePerGas": 10**12,
+                "maxPriorityFeePerGas": 10**12,
+                "maxFeePerBlobGas": to_hex(10**12),
+                "nonce": self.w3.eth.get_transaction_count(self.account.address),
+            }
+
+            gas_estimate = self.w3.eth.estimate_gas(tx)
+            tx["gas"] = gas_estimate
+
+            signed = self.account.sign_transaction(tx, blobs=[BLOB_DATA])
+            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+            tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            logger.info(f"Blob transaction published: {tx_receipt.transactionHash.hex()}")
+
+            transaction = self.contract.functions.publishCRL(
+                SaveMethod.BLOB,
+                tx_hash.hex(),
+                24  # validityHours
+            ).build_transaction({
+                'from': self.account.address,
+                'gas': 200000,
+                'gasPrice': self.w3.eth.gas_price,
+                'nonce': self.w3.eth.get_transaction_count(self.account.address)
+            })
+            
+            signed_txn = self.account.sign_transaction(transaction)
+            registry_tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+            
+            logger.debug(f"Registry Transaction: {registry_tx_hash.hex()}")
+            receipt = self.w3.eth.wait_for_transaction_receipt(registry_tx_hash)
+            
+            if receipt.status == 1:
+                logger.debug("Blob CRL registered successfully!")
+                
+                # Parse events - updated field names
+                events = self.contract.events.CRLPublished().process_receipt(receipt)
+                if events:
+                    event = events[0]
+                    logger.info(f"   Event: Blob CRL Published")
+                    logger.info(f"   Save Method: {'BLOB'}")
+                    logger.info(f"   Pointer Hash: {event['args']['pointerHash']}")
+                    logger.info(f"   Version: {event['args']['version']}")
+                    logger.info(f"   Expires: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(event['args']['expiresAt']))}")
+            else:
+                logger.error("Registry transaction failed")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to publish Blob CRL: {e}")
+            return False
+        finally:
+            self._cleanup_token()
