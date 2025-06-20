@@ -57,6 +57,9 @@ services:
   ipfs:
     container_name: ipfs
     image: ipfs/kubo:v0.35.0
+    ports:
+      - "4001:4001"          # Swarm port
+      - "4001:4001/udp"      # QUIC
     volumes:
       - ipfs_data:/data/ipfs
       - ipfs_staging:/export     
