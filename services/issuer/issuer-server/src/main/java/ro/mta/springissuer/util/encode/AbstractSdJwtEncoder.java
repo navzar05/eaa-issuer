@@ -126,7 +126,8 @@ public abstract class AbstractSdJwtEncoder {
                 "contract_address", blockchainContractAddress,
                 "issuer_address", blockchainIssuerAddress,
                 "idx", credentialId,
-                "abi", abi
+                "abi", abi,
+                "ipfs_endpoint", "https://ipfs.io/ipfs/"
         );
         return Map.of(
                 "status_list", statusList,
