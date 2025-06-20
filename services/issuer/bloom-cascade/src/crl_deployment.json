@@ -1,0 +1,195 @@
+{
+  "contract_address": "0x84a83892cb0608c5dfDa5EBD7398d2c3EfF0988d",
+  "contract_abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "issuer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "enum CRLRegistry.SaveMethod",
+          "name": "saveMethod",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "pointerHash",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "expiresAt",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "version",
+          "type": "uint256"
+        }
+      ],
+      "name": "CRLPublished",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "NAME",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "VERSION",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "enum CRLRegistry.SaveMethod",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "name": "crls",
+      "outputs": [
+        {
+          "internalType": "enum CRLRegistry.SaveMethod",
+          "name": "saveMethod",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string",
+          "name": "pointerHash",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expiresAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "version",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "issuer",
+          "type": "address"
+        },
+        {
+          "internalType": "enum CRLRegistry.SaveMethod",
+          "name": "saveMethod",
+          "type": "uint8"
+        }
+      ],
+      "name": "getCRL",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "pointerHash",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expiresAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "version",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isValid",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "issuers",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum CRLRegistry.SaveMethod",
+          "name": "saveMethod",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string",
+          "name": "pointerHash",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validityHours",
+          "type": "uint256"
+        }
+      ],
+      "name": "publishCRL",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transaction_hash": "39f0f0e7a795e38ba36ab7b11ce7067dd82c6998284b201996a738fed6ab2314",
+  "deployer_address": "0xC887f232c81c4609CF98857c6Fe55FDE8d24f418",
+  "network": "holesky",
+  "gas_used": 1074156,
+  "deployment_cost_eth": 1.942494042996e-06,
+  "deployed_at": 1750400390,
+  "deployed_at_readable": "2025-06-20 06:19:50 UTC"
+}

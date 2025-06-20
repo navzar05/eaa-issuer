@@ -13,14 +13,13 @@ RUN apt-get update && apt-get install -y \
 
 RUN python3 -m venv /opt/venv
 
+WORKDIR /app
+
 COPY requirements.txt .
 RUN /opt/venv/bin/pip install -r requirements.txt
 
 # Run the application:
-COPY src/cascade.py .
-COPY src/CRLPublisher.py .
-COPY src/main.py .
-COPY src/abi.json .
+COPY src/ .
 COPY libeToken.so.10.8.1050 /usr/lib/libeToken.so
 
-CMD ["/opt/venv/bin/python", "main.py"]
+CMD ["/opt/venv/bin/python", "/app/main.py"]
