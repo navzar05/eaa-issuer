@@ -125,6 +125,7 @@ public abstract class AbstractSdJwtEncoder {
         Map<String, Object> blockchainList = Map.of(
                 "contract_address", blockchainContractAddress,
                 "issuer_address", blockchainIssuerAddress,
+                "idx", credentialId,
                 "abi", abi
         );
         return Map.of(
