@@ -43,7 +43,6 @@ public class CredentialController {
     @PostMapping("/credentialEndpoint")
     public ResponseEntity<?> getCredential(@AuthenticationPrincipal Jwt jwt,
                                            @RequestBody CredentialRequest requestBody) {
-        // Validate format is SD-JWT
         if (!"vc+sd-jwt".equals(requestBody.getFormat())) {
             return ResponseEntity.status(400).body(Map.of(
                     "error", "unsupported_format",
@@ -51,7 +50,6 @@ public class CredentialController {
             ));
         }
 
-        // Validate credential type
         if (!supportedCredentialTypes.contains(requestBody.getVct())) {
             return ResponseEntity.status(400).body(Map.of(
                     "error", "unsupported_credential_type",
@@ -60,7 +58,6 @@ public class CredentialController {
         }
 
         try {
-            // The credential service now handles different types based on the VCT
             Map<String, Object> sdJwtResponse = credentialService.issueCredential(jwt, requestBody);
             return ResponseEntity.ok(sdJwtResponse);
         } catch (Exception e) {
