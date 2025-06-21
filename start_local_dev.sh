@@ -27,7 +27,7 @@ files="config/san.cnf
       ./services/nginx-proxy/nginx_dev.conf
       ./wallet/eudi-app-android-wallet-ui/core-logic/src/demo/java/eu/europa/ec/corelogic/config/ConfigWalletCoreImpl.kt
       ./docker/docker-compose.yaml
-      /home/razvan/Desktop/LICENTA/Licenta/services/authentic-source/authserver/src/main/resources/application.yml
+      /home/razvan/Desktop/LICENTA/Licenta/services/authentic-source/impl-authz-server-eudi/src/main/resources/application.yml
       "
 
 for file in $files; do
@@ -46,7 +46,7 @@ ca_cert="./config/ca/ca.crt"
 names="./services/issuer/issuer-server/src/main/resources/issuer-server
        ./services/authentic-source/keycloak/certs/keycloak.tls
        ./services/nginx-proxy/certs/nginx
-       ./services/authentic-source/authserver/src/main/resources/authz-server"
+       ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server"
 
 for name in $names; do
     openssl genpkey -algorithm RSA -out ${name}.key
@@ -62,9 +62,9 @@ openssl pkcs12 -export \
       --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 
 openssl pkcs12 -export \
-  -inkey ./services/authentic-source/authserver/src/main/resources/authz-server.key \
-  -in ./services/authentic-source/authserver/src/main/resources/authz-server.crt \
-  -out ./services/authentic-source/authserver/src/main/resources/authz-server.p12 \
+  -inkey ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.key \
+  -in ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.crt \
+  -out ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.p12 \
   -name issuer-server \
   --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 
