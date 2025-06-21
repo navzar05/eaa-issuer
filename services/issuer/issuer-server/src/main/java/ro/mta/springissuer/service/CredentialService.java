@@ -42,7 +42,7 @@ public class CredentialService {
 
     public Map<String, Object> issueCredential(Jwt jwt, CredentialRequest request) {
         try {
-            //TODO: Verifica daca tipul de credential cerut este existent/aprobat
+            // TODO: Verifica daca tipul de credential cerut este existent/aprobat
             Long credentialId = this.credentialStatusService.createCredentialStatus(false);
 
             if (credentialId == null) {
