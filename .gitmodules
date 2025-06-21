@@ -1,3 +1,0 @@
-[submodule "services/authentic-source/authserver"]
-	path = services/authentic-source/authserver
-	url = git@github.com:navzar05/authz-server-eudi.git
