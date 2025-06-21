@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import ro.mta.springissuer.entity.CredentialStatus;
 import ro.mta.springissuer.model.request.CredentialRequest;
-import ro.mta.springissuer.util.credential.StrategyRegistry;
+import ro.mta.springissuer.util.encode.AgnosticSdJwtEncoder;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -22,46 +22,42 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CredentialService {
     private static final Logger logger = LoggerFactory.getLogger(CredentialService.class);
 
-    @Value("${revocation.list.size}")
-    private int CREDENTIAL_ID_MAX;
-
-    @Value("${path.to.revocation.list}")
-    public String credentialStatusFile;
-
-
     private final UserInfoService userInfoService;
-    private final StrategyRegistry strategyRegistry;
     private final CredentialStatusService credentialStatusService;
+    private final AgnosticSdJwtEncoder agnosticSdJwtEncoder;
 
 
     @Autowired
     public CredentialService(
             UserInfoService userInfoService,
-            StrategyRegistry strategyRegistry,
-            CredentialStatusService credentialStatusService
+            CredentialStatusService credentialStatusService,
+            AgnosticSdJwtEncoder agnosticSdJwtEncoder
+
     ) {
         this.userInfoService = userInfoService;
-        this.strategyRegistry = strategyRegistry;
         this.credentialStatusService = credentialStatusService;
+        this.agnosticSdJwtEncoder = agnosticSdJwtEncoder;
     }
 
 
     public Map<String, Object> issueCredential(Jwt jwt, CredentialRequest request) {
         try {
-            if (!strategyRegistry.supports(request.getVct())) {
-                return null;
-            }
-
+            //TODO: Verifica daca tipul de credential cerut este existent/aprobat
             Long credentialId = this.credentialStatusService.createCredentialStatus(false);
 
             if (credentialId == null) {
                 throw new RuntimeException("Failed to generate credential id");
             }
 
-            String sdJwt = strategyRegistry.getStrategy(request.getVct())
-                    .encodeToSdJwt(
-                            userInfoService.getUserDetails(jwt),
-                            credentialId);
+//            String sdJwt = strategyRegistry.getStrategy(request.getVct())
+//                    .encodeToSdJwt(
+//                            userInfoService.getUserDetails(jwt),
+//                            credentialId);
+
+            String sdJwt = agnosticSdJwtEncoder.encode(
+                    userInfoService.getUserDetails(jwt),
+                    credentialId
+            );
 
             logger.info("Successfully issued credential: {}",  credentialId);
 

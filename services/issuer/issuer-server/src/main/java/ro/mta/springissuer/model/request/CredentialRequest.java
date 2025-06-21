@@ -2,7 +2,9 @@ package ro.mta.springissuer.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 
+@Setter
 @Getter
 public class CredentialRequest {
 
@@ -13,12 +15,5 @@ public class CredentialRequest {
     private String vct;
 
 
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public void setVct(String vct) {
-        this.vct = vct;
-    }
 }
 
