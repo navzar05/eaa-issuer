@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import ro.mta.springissuer.util.authzclient.client.AuthzClient;
+import ro.mta.springissuer.util.authzclient.registry.WebClientRegistry;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,18 +21,13 @@ import java.util.Map;
 @Slf4j
 public class PreAuthorizedCodeService {
 
-    @Qualifier("springAuthzWebClient")
-    private final WebClient springAuthzWebClient;
+    WebClientRegistry webClientRegistry;
 
+    @Value("${spring.authorization-server.base-url}")
+    String springBaseUrl;
 
-    @Value("${oauth2.client.client-secret:zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2}")
-    private String clientSecret;
-
-    @Value("${oauth2.client.client-id:issuer-srv}")
-    private String clientId;
-
-    PreAuthorizedCodeService(@Qualifier("springAuthzWebClient") WebClient webClient) {
-        this.springAuthzWebClient = webClient;
+    PreAuthorizedCodeService(WebClientRegistry webClientRegistry) {
+        this.webClientRegistry = webClientRegistry;
     }
 
     public Map<String, Object> createPreAuthorizedCode(String userId, List<String> scopes, boolean requirePin) {
@@ -40,13 +37,14 @@ public class PreAuthorizedCodeService {
         requestBody.put("require_pin", requirePin);
         requestBody.put("scopes", scopes);
 
-        String adminToken = getAdminAccessTokenSpring();
+        AuthzClient springAuthzClient = webClientRegistry.getAuthzClient(springBaseUrl);
 
         try {
-            Map response = springAuthzWebClient
+            Map response = springAuthzClient
+                    .getWebClient()
                     .post()
                     .uri("/credential-offer/create")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + springAuthzClient.getClientSecret())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
@@ -63,31 +61,5 @@ public class PreAuthorizedCodeService {
         }
     }
 
-    private String getAdminAccessTokenSpring() {
-
-        log.info("Using clientId: {}", clientId);
-        log.info("Using clientSecret: {}", clientSecret != null ? "***" + clientSecret.substring(Math.max(0, clientSecret.length() - 4)) : "null");
-
-
-        log.debug("Obtaining admin access token from Spring Authorization Server");
-
-        // Encode client credentials for Basic Auth
-        String credentials = clientId + ":" + clientSecret;
-        String encodedCredentials = java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
-
-        Mono<Map> tokenResponse = springAuthzWebClient.post()
-                .uri("/oauth2/token")
-                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
-                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-                .bodyValue("grant_type=client_credentials&scope=issuer:credentials")
-                .retrieve()
-                .bodyToMono(Map.class);
-
-        Map<String, Object> response = tokenResponse.block();
-        if (response == null || !response.containsKey("access_token")) {
-            throw new RuntimeException("Failed to obtain Spring Authorization Server admin access token");
-        }
-        return (String) response.get("access_token");
-    }
 
 }

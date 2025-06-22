@@ -58,19 +58,32 @@ public class AgnosticSdJwtEncoder {
         this.omittedDisclosuresList = new ArrayList<>();
 
         omittedDisclosuresList.add("vct");
+        omittedDisclosuresList.add("access");
+        omittedDisclosuresList.add("createdTimestamp");
+        omittedDisclosuresList.add("id");
+        omittedDisclosuresList.add("requiredActions");
+        omittedDisclosuresList.add("notBefore");
+        omittedDisclosuresList.add("emailVerified");
+        omittedDisclosuresList.add("totp");
+        omittedDisclosuresList.add("username");
     }
 
     public String encode(Map<String, Object> userDetails, Long credentialId) {
         List<Disclosure> disclosures = createDisclosures(userDetails);
 
+        String vct = null;
         // TODO: Vezi ce faci cu vct sa fie mai safe
-        return this.createSdJwt(userDetails.get("vct").toString(), credentialId, disclosures);
+        if (userDetails.get("vct") == null) {
+            Map<String, Object> attributes = (Map<String, Object>) userDetails.get("attributes");
+            vct = attributes.get("vct").toString();
+        } else
+            vct = userDetails.get("vct").toString();
+        return this.createSdJwt(vct, credentialId, disclosures);
     }
 
     public List<Disclosure> createDisclosures(Map<String, Object> userDetails) {
         List<Disclosure> disclosures = new ArrayList<>();
 
-        // TREBUIE SA OMITEM VCT DIN DISCLOSURES
         for (Map.Entry<String, Object> entry : userDetails.entrySet()) {
             String key = entry.getKey();
 

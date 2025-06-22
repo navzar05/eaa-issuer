@@ -55,7 +55,7 @@ public class CredentialService {
 //                            credentialId);
 
             String sdJwt = agnosticSdJwtEncoder.encode(
-                    userInfoService.getUserDetails(jwt),
+                    userInfoService.getUserInfo(jwt),
                     credentialId
             );
 

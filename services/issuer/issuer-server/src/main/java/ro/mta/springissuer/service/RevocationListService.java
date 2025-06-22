@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,12 +19,10 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.PrivateKey;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class RevocationListService {
@@ -45,6 +44,38 @@ public class RevocationListService {
         this.revocationList = revocationList;
         this.signingKey = signingKey;
         this.signingCertificateChain = signingCertificateChain;
+    }
+
+    @PostConstruct
+    void init() {
+        Path directory = Paths.get(storagePath);
+
+        try{
+            Optional<Path> newestFile = getNewestFile(directory);
+            if (newestFile.isPresent()) {
+                logger.info("Newest file found: {}", newestFile.get());
+                latestStatusListPath = newestFile.get().toString();
+            } else {
+                logger.warn("No files found in directory: {}", directory);
+            }
+        } catch (IOException e) {
+            logger.error("Error accessing directory: {}", directory, e);
+        }
+    }
+
+    private Optional<Path> getNewestFile(Path directory) throws IOException {
+        return Files.list(directory)
+                .filter(Files::isRegularFile)
+                .max(Comparator.comparingLong(this::getFileLastModified));
+    }
+
+    private long getFileLastModified(Path file) {
+        try {
+            return Files.readAttributes(file, BasicFileAttributes.class).lastModifiedTime().toMillis();
+        } catch (IOException e) {
+            logger.warn("Could not read file attributes for: {}", file, e);
+            return 0;
+        }
     }
 
     @Scheduled(cron = "0 0 0 * * *")
