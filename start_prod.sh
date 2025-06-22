@@ -43,7 +43,7 @@ ca_cert="./config/ca/ca.crt"
 
 declare -A cert_configs=(
     ["./services/issuer/issuer-server/src/main/resources/issuer-server"]="./config/issuer-server-san.cnf"
-    ["./services/authentic-source/authserver/src/main/resources/authz-server"]="./config/authz-server-san.cnf"
+    ["./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server"]="./config/authz-server-san.cnf"
     ["./services/authentic-source/keycloak/certs/keycloak.tls"]="./config/keycloak-san.cnf"
     ["./services/nginx-proxy/certs/nginx"]="./config/nginx-san.cnf"
 )
@@ -69,9 +69,9 @@ openssl pkcs12 -export \
       --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 
 openssl pkcs12 -export \
-      -inkey ./services/authentic-source/authserver/src/main/resources/authz-server.key \
-      -in ./services/authentic-source/authserver/src/main/resources/authz-server.crt \
-      -out ./services/authentic-source/authserver/src/main/resources/authz-server.p12 \
+      -inkey ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.key \
+      -in ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.crt \
+      -out ./services/authentic-source/impl-authz-server-eudi/src/main/resources/authz-server.p12 \
       -name issuer-server \
       --passout pass:${ISSUER_SERVER_P12_PASSWORD}
 

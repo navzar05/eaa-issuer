@@ -57,6 +57,8 @@ public class RevocationListService {
                 latestStatusListPath = newestFile.get().toString();
             } else {
                 logger.warn("No files found in directory: {}", directory);
+                logger.info("Generating revocation list...");
+                generateStatusListJWT();
             }
         } catch (IOException e) {
             logger.error("Error accessing directory: {}", directory, e);

@@ -7,7 +7,7 @@ services:
     command:
       - start-dev
       - --import-realm
-      - --features=dpop
+      # - --features=dpop
     environment:
       - KC_HOSTNAME=issuer.myddns.me
       - KC_HOSTNAME_URL=https://issuer.myddns.me/idp
@@ -151,8 +151,8 @@ services:
 
 
   issuer-server:
-    image: issuer_server:redis
-    container_name: issuer_server
+    image: issuer_server:dev-agnostic
+    container_name: issuer-server
     environment:
       - BLOCKCHAIN_CONTRACT_ADDRESS=0x84a83892cb0608c5dfDa5EBD7398d2c3EfF0988d
     volumes:
@@ -163,8 +163,9 @@ services:
 
 
 volumes:
-  docker-compose_postgres-spring_data:
   docker-compose_postgres_data:
+ #   external: true
+  docker-compose_postgres-spring_data:
   redis_data:
   ipfs_data:
   ipfs_staging:
