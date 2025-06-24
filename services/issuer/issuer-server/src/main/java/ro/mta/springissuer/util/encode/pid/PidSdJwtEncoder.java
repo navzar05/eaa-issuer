@@ -8,30 +8,22 @@ import ro.mta.springissuer.model.credential.Pid;
 
 import ro.mta.springissuer.util.encode.AbstractSdJwtEncoder;
 
-import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.Provider;
-import java.security.Signature;
 import java.util.*;
 
 @Component
-public class EncodePidInSdJwtVc extends AbstractSdJwtEncoder {
+public class PidSdJwtEncoder extends AbstractSdJwtEncoder {
 
-    public EncodePidInSdJwtVc(Provider pkcs11Provider, KeyStore tokenKeyStore,
-                              PrivateKey signingKey, List<Base64> signingCertificateChain,
-                              Signature tokenSignature) {
-        super(pkcs11Provider, tokenKeyStore, signingKey, signingCertificateChain, tokenSignature);
+    public PidSdJwtEncoder(PrivateKey signingKey, List<Base64> signingCertificateChain) {
+        super(signingKey, signingCertificateChain);
     }
 
     @Override
-    public String encode(Credential credential) {
-        if (!(credential instanceof Pid)) {
-            throw new IllegalArgumentException("Credential must be of type Pid");
-        }
-        return createSdJwt(credential, createDisclosures(credential));
+    public String encode(Map<String, Object> userDetails, Long credentialId) {
+        Pid pid = new Pid(userDetails, credentialId);
+        return createSdJwt(pid, createDisclosures(pid));
     }
 
-    @Override
     protected List<Disclosure> createDisclosures(Credential credential) {
         Pid pid = (Pid) credential;
 

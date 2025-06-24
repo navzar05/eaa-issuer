@@ -1,49 +1,39 @@
 package ro.mta.springissuer.service;
 
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import ro.mta.springissuer.entity.CredentialStatus;
 import ro.mta.springissuer.model.request.CredentialRequest;
-import ro.mta.springissuer.util.credential.StrategyRegistry;
-import ro.mta.springissuer.util.encode.AgnosticSdJwtEncoder;
+import ro.mta.springissuer.util.encode.EncoderRegistry;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class CredentialService {
     private static final Logger logger = LoggerFactory.getLogger(CredentialService.class);
 
+
     @Value("${server.isdev:0}")
-    private int IS_DEV;
+    private int isDev;
 
     private final UserInfoService userInfoService;
     private final CredentialStatusService credentialStatusService;
-    private final AgnosticSdJwtEncoder agnosticSdJwtEncoder;
-    private final StrategyRegistry strategyRegistry;
+    private final EncoderRegistry encoderRegistry;
 
 
     @Autowired
     public CredentialService(
             UserInfoService userInfoService,
             CredentialStatusService credentialStatusService,
-            AgnosticSdJwtEncoder agnosticSdJwtEncoder,
-            StrategyRegistry strategyRegistry
+            EncoderRegistry encoderRegistry
 
     ) {
         this.userInfoService = userInfoService;
         this.credentialStatusService = credentialStatusService;
-        this.agnosticSdJwtEncoder = agnosticSdJwtEncoder;
-        this.strategyRegistry = strategyRegistry;
+        this.encoderRegistry = encoderRegistry;
     }
 
 
@@ -53,26 +43,22 @@ public class CredentialService {
             // TODO: Verifica daca tipul de credential cerut este existent/aprobat
             credentialId = this.credentialStatusService.createCredentialStatus(false);
 
+            String sdJwt = null;
+
             if (credentialId == null) {
                 throw new RuntimeException("Failed to generate credential id");
             }
 
-            if (!strategyRegistry.supports(request.getVct())) {
+            if (!encoderRegistry.containsEncoder(request.getVct())) {
                 logger.error("{} not registered on issuer", request.getVct());
-                if (IS_DEV==1) {
-                    logger.info("Server is set to dev mode. Using agnostic sd-jwt encoder");
-                    String sdJwt = agnosticSdJwtEncoder.encode(
-                            userInfoService.getUserInfo(jwt),
-                            credentialId
-                    );
-                } else
-                    throw new RuntimeException("Server is not set to dev mode. Unregistered vct are not supported");
-            }
+                throw new RuntimeException("Credential is not registered on issuer");
 
-            String sdJwt = strategyRegistry.getStrategy(request.getVct())
-                    .encodeToSdJwt(
-                            userInfoService.getUserInfo(jwt),
-                            credentialId);
+            } else {
+                sdJwt = encoderRegistry.
+                        getEncoder(request.getVct()).
+                        encode(userInfoService.getUserInfo(jwt),
+                                credentialId);
+            }
 
             logger.info("Successfully issued credential: {}",  credentialId);
 

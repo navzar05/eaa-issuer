@@ -15,19 +15,7 @@ public class Pid extends Credential {
     private final LocalDate birthDate;
     private final String birthPlace;
     private final List<String> nationalities;
-    private final String residentAddress;
     private final String residentCountry;
-    private final String residentState;
-    private final String residentCity;
-    private final String residentPostalCode;
-    private final String residentStreet;
-    private final String residentHouseNumber;
-    private final byte[] portrait;
-    private final String familyNameBirth;
-    private final String givenNameBirth;
-    private final Integer sex;
-    private final String emailAddress;
-    private final String mobilePhoneNumber;
     private final Boolean isOver18;
     private final Integer ageInYears;
     private final Year ageBirthYear;
@@ -43,19 +31,7 @@ public class Pid extends Credential {
         this.birthDate = LocalDate.parse(attributes.get("birthdate").get(0));
         this.birthPlace = "Unknown";
         this.nationalities = List.of("RO");
-        this.residentAddress = null;
         this.residentCountry = "RO";
-        this.residentState = null;
-        this.residentCity = null;
-        this.residentPostalCode = null;
-        this.residentStreet = null;
-        this.residentHouseNumber = null;
-        this.portrait = null;
-        this.familyNameBirth = null;
-        this.givenNameBirth = null;
-        this.sex = null;
-        this.emailAddress = null;
-        this.mobilePhoneNumber = null;
         if (attributes.get("is_over_18") != null)
             this.isOver18 = attributes.get("is_over_18").get(0).equals("true");
         else

@@ -13,23 +13,18 @@ import java.util.*;
 
 
 @Component("graduationEncoder")
-public class EncodeGraduationInSdJwtVc extends AbstractSdJwtEncoder {
+public class UnivGradSdJwtEncoder extends AbstractSdJwtEncoder {
 
-    public EncodeGraduationInSdJwtVc(Provider pkcs11Provider, KeyStore tokenKeyStore,
-                                     PrivateKey signingKey, List<Base64> signingCertificateChain,
-                                     Signature tokenSignature) {
-        super(pkcs11Provider, tokenKeyStore, signingKey, signingCertificateChain, tokenSignature);
+    public UnivGradSdJwtEncoder(PrivateKey signingKey, List<Base64> signingCertificateChain) {
+        super(signingKey, signingCertificateChain);
     }
 
     @Override
-    public String encode(Credential credential) {
-        if (!(credential instanceof UniversityGraduation)) {
-            throw new IllegalArgumentException("Credential must be of type UniversityGraduation");
-        }
-        return createSdJwt(credential, createDisclosures(credential));
+    public String encode(Map<String, Object> userDetails, Long credentialId) {
+        UniversityGraduation universityGraduation = new UniversityGraduation(userDetails, credentialId);
+        return createSdJwt(universityGraduation, createDisclosures(universityGraduation));
     }
 
-    @Override
     protected List<Disclosure> createDisclosures(Credential credential) {
         UniversityGraduation graduation = (UniversityGraduation) credential;
 

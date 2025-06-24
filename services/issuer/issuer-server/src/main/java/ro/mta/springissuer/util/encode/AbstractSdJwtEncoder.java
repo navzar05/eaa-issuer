@@ -50,21 +50,13 @@ public abstract class AbstractSdJwtEncoder {
     @Value("${blockchain.issuer.address}")
     private String blockchainIssuerAddress;
 
-    private final Provider pkcs11Provider;
-    private final KeyStore tokenKeyStore;
     private final PrivateKey signingKey;
     private final List<Base64> signingCertificateChain;
-    private final Signature tokenSignature;
 
 
-    public AbstractSdJwtEncoder(Provider pkcs11Provider, KeyStore tokenKeyStore,
-                                PrivateKey signingKey, List<Base64> signingCertificateChain,
-                                Signature tokenSignature) {
-        this.pkcs11Provider = pkcs11Provider;
-        this.tokenKeyStore = tokenKeyStore;
+    public AbstractSdJwtEncoder(PrivateKey signingKey, List<Base64> signingCertificateChain) {
         this.signingKey = signingKey;
         this.signingCertificateChain = signingCertificateChain;
-        this.tokenSignature = tokenSignature;
     }
 
     protected String createSdJwt(Credential credential, List<Disclosure> disclosures) {
@@ -148,7 +140,5 @@ public abstract class AbstractSdJwtEncoder {
         return signedJWT;
     }
 
-    protected abstract List<Disclosure> createDisclosures(Credential credential);
-
-    public abstract String encode(Credential credential);
+    public abstract String encode(Map<String, Object> userDetails, Long credentialId);
 }

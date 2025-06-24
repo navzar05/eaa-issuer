@@ -8,13 +8,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ro.mta.springissuer.model.request.CredentialRequest;
-import ro.mta.springissuer.service.CredentialOfferService;
 import ro.mta.springissuer.service.CredentialService;
+import ro.mta.springissuer.service.PreAuthorizedCodeService;
 import ro.mta.springissuer.service.QRCodeService;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +21,7 @@ import java.util.Set;
 public class CredentialController {
 
     private final CredentialService credentialService;
-    private final CredentialOfferService credentialOfferService;
+    private final PreAuthorizedCodeService preAuthorizedCodeService;
     private final QRCodeService qrCodeService;
 
     private final Set<String> supportedCredentialTypes = Set.of(
@@ -33,10 +30,10 @@ public class CredentialController {
     );
 
     public CredentialController(CredentialService credentialService,
-                                CredentialOfferService credentialOfferService,
+                                PreAuthorizedCodeService preAuthorizedCodeService,
                                 QRCodeService qrCodeService) {
         this.credentialService = credentialService;
-        this.credentialOfferService = credentialOfferService;
+        this.preAuthorizedCodeService = preAuthorizedCodeService;
         this.qrCodeService = qrCodeService;
     }
 
@@ -69,26 +66,29 @@ public class CredentialController {
     }
 
     @GetMapping("/offer/qr")
-    public ResponseEntity<byte[]> generateQRFromParams(
+    public ResponseEntity<byte[]> generateCredentialOfferQR(
             @RequestParam String userId,
             @RequestParam(defaultValue = "true") boolean requirePin) {
 
-        List<String> scopes = new ArrayList<>();
+        try {
+            List<String> scopes = List.of("org.certsign.university_graduation_sdjwt");
 
-        scopes.add("org.certsign.university_graduation_sdjwt");
+            Map<String, Object> credentialOffer = preAuthorizedCodeService
+                    .createPreAuthorizedCode(userId, scopes, requirePin);
 
-        Map<String, Object> offerData = credentialOfferService.createCredentialOfferWithQR(
-                userId, scopes, requirePin);
+            String credentialOfferUrl = (String) credentialOffer.get("credential_offer_url");
+            byte[] qrCodeBytes = qrCodeService.generateQRCodeBytes(credentialOfferUrl, 300, 300);
 
-        String credentialOfferUrl = (String) offerData.get("credential_offer_url");
-        byte[] qrCodeBytes = qrCodeService.generateQRCodeBytes(credentialOfferUrl, 300, 300);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_PNG);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(qrCodeBytes);
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(qrCodeBytes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/health")

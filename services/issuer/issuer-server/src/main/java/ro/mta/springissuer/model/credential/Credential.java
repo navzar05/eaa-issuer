@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.time.Period;
 
 @Getter
-public abstract class Credential {
+public class Credential {
     protected Long credentialId;
     protected Period availabilityPeriod;
     protected String vct;
