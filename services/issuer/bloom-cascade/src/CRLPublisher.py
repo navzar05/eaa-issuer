@@ -17,7 +17,6 @@ from PyKCS11 import PyKCS11  # For NetSafe eToken interaction
 from enum import IntEnum
 
 from cascade import Cascade
-from cascade_blob import CascadeBlob
 from deploy_contract import deploy_crl_contract
 
 load_dotenv(dotenv_path='../.env')
@@ -74,7 +73,6 @@ class CRLPublisher:
             self.R = set()  # valid creds
             self.S = set()  # invalid creds
             self.cascade = Cascade()
-            self.blob_cascade = CascadeBlob()
             
             self.redis = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
             self.redis.ping()
@@ -380,6 +378,16 @@ class CRLPublisher:
             
             logger.debug(f"Transaction: {tx_hash.hex()}")
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+            # Calculate gas costs
+            actual_gas_used = receipt.gasUsed
+            effective_gas_price = receipt.effectiveGasPrice
+            total_gas_cost = actual_gas_used * effective_gas_price
+            
+            logger.info(f"=== IPFS CRL Gas Costs ===")
+            logger.info(f"Actual gas used: {actual_gas_used}")
+            logger.info(f"Effective gas price: {effective_gas_price} wei")
+            logger.info(f"Total gas cost: {total_gas_cost} wei ({total_gas_cost / 10**18:.8f} ETH)")
             
             if receipt.status == 1:
                 logger.debug("CRL published successfully!")
@@ -408,11 +416,11 @@ class CRLPublisher:
         try:
             self._get_all_credentials()
 
-            self.blob_cascade.build_cascade(self.R, self.S)
+            self.cascade.build_cascade(self.R, self.S)
 
-            cascade_data = self.blob_cascade.serialize_cascade()
+            cascade_data = self.cascade.serialize_cascade_blob()
 
-            marked_data = self.blob_cascade.MAGIC_NUMBER + cascade_data
+            marked_data = self.cascade.MAGIC_NUMBER + cascade_data
 
             required_padding = 131072 - (len(marked_data) % 131072)
 
@@ -438,6 +446,21 @@ class CRLPublisher:
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             logger.info(f"Blob transaction published: {tx_receipt.transactionHash.hex()}")
 
+            blob_gas_used = tx_receipt.gasUsed
+            blob_effective_gas_price = tx_receipt.effectiveGasPrice
+            blob_gas_cost = blob_gas_used * blob_effective_gas_price
+            
+            # Blob-specific gas (if available)
+            blob_gas_used_specific = getattr(tx_receipt, 'blobGasUsed', 0)
+            blob_gas_price = getattr(tx_receipt, 'effectiveGasPrice', 0)
+            
+            logger.info(f"=== Blob Transaction Gas Costs ===")
+            logger.info(f"Blob actual gas used: {blob_gas_used}")
+            logger.info(f"Blob effective gas price: {blob_effective_gas_price} wei")
+            logger.info(f"Blob gas cost: {blob_gas_cost} wei ({blob_gas_cost / 10**18:.8f} ETH)")
+            if blob_gas_used_specific:
+                logger.info(f"Blob-specific gas used: {blob_gas_used_specific}")
+
             transaction = self.contract.functions.publishCRL(
                 SaveMethod.BLOB,
                 tx_hash.hex(),
@@ -454,6 +477,22 @@ class CRLPublisher:
             
             logger.debug(f"Registry Transaction: {registry_tx_hash.hex()}")
             receipt = self.w3.eth.wait_for_transaction_receipt(registry_tx_hash)
+
+            registry_gas_used = receipt.gasUsed
+            registry_effective_gas_price = receipt.effectiveGasPrice
+            registry_gas_cost = registry_gas_used * registry_effective_gas_price
+            
+            # Total costs
+            total_gas_cost = blob_gas_cost + registry_gas_cost
+            
+            logger.info(f"=== Registry Transaction Gas Costs ===")
+            logger.info(f"Registry actual gas used: {registry_gas_used}")
+            logger.info(f"Registry effective gas price: {registry_effective_gas_price} wei")
+            logger.info(f"Registry gas cost: {registry_gas_cost} wei ({registry_gas_cost / 10**18:.8f} ETH)")
+            
+            logger.info(f"=== Total Blob CRL Costs ===")
+            logger.info(f"Total gas cost: {total_gas_cost} wei ({total_gas_cost / 10**18:.8f} ETH)")
+
             
             if receipt.status == 1:
                 logger.debug("Blob CRL registered successfully!")
@@ -474,5 +513,4 @@ class CRLPublisher:
         except Exception as e:
             logger.error(f"Failed to publish Blob CRL: {e}")
             return False
-        finally:
-            self._cleanup_token()
+        
