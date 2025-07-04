@@ -16,12 +16,10 @@ class Cascade:
 
     def build_cascade(self, R, S):
 
-        self.r_hat, self.s_hat = self.calculate_daily_crl_sizes(len(R))
+        self.r_hat, self.s_hat = self.calculate_daily_crl_sizes(len(R), len(S))
 
         self.filters = []
         self.salt = format(secrets.randbits(256), "064x")
-
-        self.s_hat = 2 * self.r_hat
 
         Pr = set()
         while len(Pr) < self.r_hat - len(R):
@@ -84,11 +82,10 @@ class Cascade:
         else:
             return True
      
-    def calculate_daily_crl_sizes(self, current_valid_certs : int, daily_revocation_rate : float = 0.01, safety_factor : float = 1.2):
-        expected_revocations = math.ceil(current_valid_certs * daily_revocation_rate * safety_factor)
+    def calculate_daily_crl_sizes(self, current_valid_certs : int, current_revoked_certs: int, padding_rate : float = 0.05):
         
-        r_hat = current_valid_certs - expected_revocations
-        
+        r_hat = (current_revoked_certs + current_valid_certs) * (current_revoked_certs / (current_revoked_certs + current_valid_certs)) + (current_revoked_certs + current_valid_certs)
+
         s_hat = 2 * r_hat
         
         return r_hat, s_hat
